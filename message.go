@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -47,7 +48,9 @@ func (m *Message) Decode(in io.Reader) error {
 
 // Type messageDecoder represents Message decoder
 type messageDecoder struct {
-	in io.Reader
+	in  io.Reader // Input stream
+	off int       // Offset of last tag
+	cnt int       // Count of read bytes
 }
 
 // Decode the message
@@ -89,7 +92,7 @@ func (md *messageDecoder) decode(m *Message) error {
 
 		switch tag {
 		case TagZero:
-			err = errors.New("Invalid tag 0")
+			err = md.error("Invalid tag 0")
 		case TagEnd:
 			done = true
 
@@ -131,13 +134,13 @@ func (md *messageDecoder) decode(m *Message) error {
 				if prev != nil {
 					prev.AddValue(attr.Values[0].T, attr.Values[0].V)
 				} else {
-					err = errors.New("Additional value without preceding attribute")
+					err = md.error("Additional value without preceding attribute")
 				}
 			case group != nil:
 				*group = append(*group, attr)
 				prev = &(*group)[len(*group)-1]
 			default:
-				err = errors.New("Attribute without a group")
+				err = md.error("Attribute without a group")
 			}
 		}
 	}
@@ -147,6 +150,7 @@ func (md *messageDecoder) decode(m *Message) error {
 
 // Decode a tag
 func (md *messageDecoder) decodeTag() (Tag, error) {
+	md.off = md.cnt
 	t, err := md.decodeU8()
 	return Tag(t), err
 }
@@ -229,9 +233,17 @@ func (md *messageDecoder) read(data []byte) error {
 		if err != nil {
 			return err
 		} else {
+			md.cnt += n
 			data = data[n:]
 		}
 	}
 
 	return nil
+}
+
+// Create an error
+func (md *messageDecoder) error(format string, args ...interface{}) error {
+	s := fmt.Sprintf(format, args...)
+	s += fmt.Sprintf(" at 0x%x", md.off)
+	return errors.New(s)
 }
