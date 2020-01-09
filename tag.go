@@ -142,5 +142,5 @@ func (tag Tag) String() string {
 		return "memberAttrName"
 	}
 
-	return fmt.Sprintf("0x%2.2x", tag)
+	return fmt.Sprintf("0x%2.2x", int(tag))
 }
