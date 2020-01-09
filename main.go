@@ -43,7 +43,8 @@ func main() {
 	//_, err := client.GetPrinterAttributes("printer", nil)
 	//check(err)
 
-	url := "http://192.168.1.102:631"
+	//url := "http://192.168.1.102:631"
+	url := "http://localhost:631"
 
 	rq := ipp.NewRequest(ipp.OperationGetPrinterAttributes, 1)
 	rq.OperationAttributes[ipp.OperationAttributePrinterURI] = url
@@ -52,6 +53,16 @@ func main() {
 	data, err := rq.Encode()
 	check(err)
 	log_dump(data)
+
+	var m Message
+	err = m.Decode(bytes.NewBuffer(data))
+	check(err)
+
+	for _, a := range m.Operation {
+		log_debug("%s: %v", a.Name, a.Values)
+	}
+
+	return
 
 	rsp, err := http.Post(url, "application/ipp", bytes.NewBuffer(data))
 	check(err)

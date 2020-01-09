@@ -8,11 +8,25 @@ import (
 
 // Type Attribute represents a single attribute
 type Attribute struct {
-	Name  string
-	Value Value
+	Name   string
+	Values Values
 }
 
-// Type Value represents an attribute value
+// Type Values represents an array of Attribute values
+type Values []struct {
+	T Tag   // The tag
+	V Value // The value
+}
+
+// Add value to Values
+func (values *Values) Add(t Tag, v Value) {
+	*values = append(*values, struct {
+		T Tag
+		V Value
+	}{t, v})
+}
+
+// Type Value represents a attribute value
 type Value interface {
 	isValue()
 }
@@ -61,6 +75,11 @@ type StringWithLang struct {
 
 func (StringWithLang) isValue() {}
 
+// Add value to attribute's values
+func (a *Attribute) AddValue(tag Tag, val Value) {
+	a.Values.Add(tag, val)
+}
+
 // Unpack attribute value
 func (a *Attribute) unpack(tag Tag, value []byte) error {
 	switch tag {
@@ -98,7 +117,7 @@ func (a *Attribute) unpackInteger(tag Tag, value []byte) error {
 		return fmt.Errorf("Value of %s tag must be 4 bytes", tag)
 	}
 
-	a.Value = Integer(binary.BigEndian.Uint32(value))
+	a.AddValue(tag, Integer(binary.BigEndian.Uint32(value)))
 	return nil
 }
 
@@ -108,13 +127,13 @@ func (a *Attribute) unpackBoolean(tag Tag, value []byte) error {
 		return fmt.Errorf("Value of %s tag must be 1 byte", tag)
 	}
 
-	a.Value = Boolean(value[0] != 0)
+	a.AddValue(tag, Boolean(value[0] != 0))
 	return nil
 }
 
 // Unpack String value
 func (a *Attribute) unpackString(tag Tag, value []byte) error {
-	a.Value = String(value)
+	a.AddValue(tag, String(value))
 	return nil
 }
 
@@ -178,7 +197,7 @@ func (a *Attribute) unpackDate(tag Tag, value []byte) error {
 		l,                                        // FIXME
 	)
 
-	a.Value = Time{t}
+	a.AddValue(tag, Time{t})
 	return nil
 }
 
@@ -188,12 +207,13 @@ func (a *Attribute) unpackResolution(tag Tag, value []byte) error {
 		return fmt.Errorf("Value of %s tag must be 9 bytes", tag)
 	}
 
-	a.Value = Resolution{
+	val := Resolution{
 		Xres:  int(binary.BigEndian.Uint32(value[0:4])),
 		Yres:  int(binary.BigEndian.Uint32(value[4:8])),
 		Units: value[9],
 	}
 
+	a.AddValue(tag, val)
 	return nil
 }
 
@@ -203,11 +223,12 @@ func (a *Attribute) unpackRange(tag Tag, value []byte) error {
 		return fmt.Errorf("Value of %s tag must be 8 bytes", tag)
 	}
 
-	a.Value = Range{
+	val := Range{
 		Lower: int(binary.BigEndian.Uint32(value[0:4])),
 		Upper: int(binary.BigEndian.Uint32(value[4:8])),
 	}
 
+	a.AddValue(tag, val)
 	return nil
 }
 
@@ -253,8 +274,8 @@ func (a *Attribute) unpackStringWithLang(tag Tag, value []byte) error {
 		goto ERROR
 	}
 
-	// Construct a value
-	a.Value = StringWithLang{Lang: lang, Text: text}
+	// Add a value
+	a.AddValue(tag, StringWithLang{Lang: lang, Text: text})
 	return nil
 
 ERROR:

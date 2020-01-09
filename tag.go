@@ -59,6 +59,11 @@ const (
 	TagExtension        Tag = 0x7f // Extension point for 32-bit tags
 )
 
+// Check if Tag is delimiter
+func (tag Tag) IsDelimiter() bool {
+	return tag < 0x10
+}
+
 // String() returns a tag name in a form, as defined by RFC 8010
 func (tag Tag) String() string {
 	switch tag {

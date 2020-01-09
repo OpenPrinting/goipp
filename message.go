@@ -63,10 +63,15 @@ func (m *Message) Decode(in io.Reader) error {
 	done := false
 	var group *[]Attribute
 	var attr Attribute
+	var prev *Attribute
 
 	for err == nil && !done {
 		var tag Tag
 		tag, err = m.decodeTag(in)
+
+		if tag.IsDelimiter() {
+			prev = nil
+		}
 
 		switch tag {
 		case TagZero:
@@ -105,12 +110,20 @@ func (m *Message) Decode(in io.Reader) error {
 
 		default:
 			attr, err = m.decodeAttribute(in, tag)
-			if err == nil {
-				if group != nil {
-					*group = append(*group, attr)
+
+			switch {
+			case err != nil:
+			case attr.Name == "":
+				if prev != nil {
+					prev.AddValue(attr.Values[0].T, attr.Values[0].V)
 				} else {
-					err = errors.New("Attribute without a group")
+					err = errors.New("Additional value without preceding attribute")
 				}
+			case group != nil:
+				*group = append(*group, attr)
+				prev = &(*group)[len(*group)-1]
+			default:
+				err = errors.New("Attribute without a group")
 			}
 		}
 	}
