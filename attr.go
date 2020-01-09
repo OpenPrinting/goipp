@@ -54,7 +54,7 @@ func (Range) isValue() {}
 
 // Type StringWithLang represents a combination of
 // Two strings: one is a name of natural language and
-// second is a text on it language
+// second is a text on this language
 type StringWithLang struct {
 	Lang, Text string // Language and text
 }
