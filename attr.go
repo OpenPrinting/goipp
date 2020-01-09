@@ -77,7 +77,6 @@ func (a *Attribute) unpack(tag Tag, value []byte) error {
 
 	case TagText, TagName, TagReservedString, TagKeyword, TagUri, TagUriScheme,
 		TagCharset, TagLanguage, TagMimeType:
-		a.Value = String(value)
 		return a.unpackString(tag, value)
 
 	case TagDate:

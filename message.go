@@ -104,7 +104,7 @@ func (m *Message) Decode(in io.Reader) error {
 			group = &m.Future15
 
 		default:
-			attr, err = m.decodeAttribute(in)
+			attr, err = m.decodeAttribute(in, tag)
 			if err == nil {
 				if group != nil {
 					*group = append(*group, attr)
@@ -125,27 +125,23 @@ func (m *Message) decodeTag(in io.Reader) (Tag, error) {
 }
 
 // Decode a single attribute
-func (m *Message) decodeAttribute(in io.Reader) (Attribute, error) {
+func (m *Message) decodeAttribute(in io.Reader, tag Tag) (Attribute, error) {
 	var attr Attribute
-	var valueTag Tag
 	var value []byte
 	var err error
 
-	// Obtain value tag, attribute name and raw value
-	valueTag, err = m.decodeTag(in)
-	if err != nil {
-		attr.Name, err = m.decodeString(in)
-	}
-	if err != nil {
+	// Obtain attribute name and raw value
+	attr.Name, err = m.decodeString(in)
+	if err == nil {
 		value, err = m.decodeBytes(in)
 	}
 
 	// Unpack value
-	if err != nil {
-		err = attr.unpack(valueTag, value)
+	if err == nil {
+		err = attr.unpack(tag, value)
 	}
 
-	if err == nil {
+	if err != nil {
 		return Attribute{}, err
 	}
 
