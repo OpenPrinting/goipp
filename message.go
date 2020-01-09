@@ -38,6 +38,20 @@ type Message struct {
 
 // Decode the message
 func (m *Message) Decode(in io.Reader) error {
+	md := messageDecoder{
+		in: in,
+	}
+
+	return md.decode(m)
+}
+
+// Type messageDecoder represents Message decoder
+type messageDecoder struct {
+	in io.Reader
+}
+
+// Decode the message
+func (md *messageDecoder) decode(m *Message) error {
 	/*
 	   1 byte:   VersionMajor
 	   1 byte:   VersionMinor
@@ -48,15 +62,15 @@ func (m *Message) Decode(in io.Reader) error {
 
 	// Parse message header
 	var err error
-	m.Version.Major, err = m.decodeU8(in)
+	m.Version.Major, err = md.decodeU8()
 	if err == nil {
-		m.Version.Minor, err = m.decodeU8(in)
+		m.Version.Minor, err = md.decodeU8()
 	}
 	if err == nil {
-		m.Code, err = m.decodeU16(in)
+		m.Code, err = md.decodeU16()
 	}
 	if err == nil {
-		m.RequestId, err = m.decodeU32(in)
+		m.RequestId, err = md.decodeU32()
 	}
 
 	// Now parse attributes
@@ -67,7 +81,7 @@ func (m *Message) Decode(in io.Reader) error {
 
 	for err == nil && !done {
 		var tag Tag
-		tag, err = m.decodeTag(in)
+		tag, err = md.decodeTag()
 
 		if tag.IsDelimiter() {
 			prev = nil
@@ -109,7 +123,7 @@ func (m *Message) Decode(in io.Reader) error {
 			group = &m.Future15
 
 		default:
-			attr, err = m.decodeAttribute(in, tag)
+			attr, err = md.decodeAttribute(tag)
 
 			switch {
 			case err != nil:
@@ -132,21 +146,21 @@ func (m *Message) Decode(in io.Reader) error {
 }
 
 // Decode a tag
-func (m *Message) decodeTag(in io.Reader) (Tag, error) {
-	t, err := m.decodeU8(in)
+func (md *messageDecoder) decodeTag() (Tag, error) {
+	t, err := md.decodeU8()
 	return Tag(t), err
 }
 
 // Decode a single attribute
-func (m *Message) decodeAttribute(in io.Reader, tag Tag) (Attribute, error) {
+func (md *messageDecoder) decodeAttribute(tag Tag) (Attribute, error) {
 	var attr Attribute
 	var value []byte
 	var err error
 
 	// Obtain attribute name and raw value
-	attr.Name, err = m.decodeString(in)
+	attr.Name, err = md.decodeString()
 	if err == nil {
-		value, err = m.decodeBytes(in)
+		value, err = md.decodeBytes()
 	}
 
 	// Unpack value
@@ -162,35 +176,35 @@ func (m *Message) decodeAttribute(in io.Reader, tag Tag) (Attribute, error) {
 }
 
 // Decode a 8-bit integer
-func (m *Message) decodeU8(in io.Reader) (uint8, error) {
+func (md *messageDecoder) decodeU8() (uint8, error) {
 	buf := make([]byte, 1)
-	err := m.decodeRaw(in, buf)
+	err := md.read(buf)
 	return buf[0], err
 }
 
 // Decode a 16-bit integer
-func (m *Message) decodeU16(in io.Reader) (uint16, error) {
+func (md *messageDecoder) decodeU16() (uint16, error) {
 	buf := make([]byte, 2)
-	err := m.decodeRaw(in, buf)
+	err := md.read(buf)
 	return binary.BigEndian.Uint16(buf[:]), err
 }
 
 // Decode a 32-bit integer
-func (m *Message) decodeU32(in io.Reader) (uint32, error) {
+func (md *messageDecoder) decodeU32() (uint32, error) {
 	buf := make([]byte, 4)
-	err := m.decodeRaw(in, buf)
+	err := md.read(buf)
 	return binary.BigEndian.Uint32(buf[:]), err
 }
 
 // Decode sequence of bytes
-func (m *Message) decodeBytes(in io.Reader) ([]byte, error) {
-	length, err := m.decodeU16(in)
+func (md *messageDecoder) decodeBytes() ([]byte, error) {
+	length, err := md.decodeU16()
 	if err != nil {
 		return nil, err
 	}
 
 	data := make([]byte, length)
-	err = m.decodeRaw(in, data)
+	err = md.read(data)
 	if err != nil {
 		return nil, err
 	}
@@ -199,8 +213,8 @@ func (m *Message) decodeBytes(in io.Reader) ([]byte, error) {
 }
 
 // Decode string
-func (m *Message) decodeString(in io.Reader) (string, error) {
-	data, err := m.decodeBytes(in)
+func (md *messageDecoder) decodeString() (string, error) {
+	data, err := md.decodeBytes()
 	if err != nil {
 		return "", err
 	} else {
@@ -209,9 +223,9 @@ func (m *Message) decodeString(in io.Reader) (string, error) {
 }
 
 // Read a piece of raw data from input stream
-func (m *Message) decodeRaw(in io.Reader, data []byte) error {
+func (md *messageDecoder) read(data []byte) error {
 	for len(data) > 0 {
-		n, err := in.Read(data)
+		n, err := md.in.Read(data)
 		if err != nil {
 			return err
 		} else {
