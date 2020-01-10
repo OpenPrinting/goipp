@@ -12,6 +12,7 @@ import (
 	"fmt"
 )
 
+// Type Op represents an IPP Status Code
 type Status Code
 
 const (
