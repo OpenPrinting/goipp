@@ -15,6 +15,9 @@ import (
 	"io"
 )
 
+// Type Code represents Request or Status codes
+type Code uint16
+
 // Type Version represents a protocol version
 type Version struct {
 	Major, Minor uint8
@@ -25,7 +28,7 @@ type Version struct {
 type Message struct {
 	// Common header
 	Version   Version // Protocol version
-	Code      uint16  // Operation for request, status for response
+	Code      Code    // Operation for request, status for response
 	RequestId uint32  // Set in request, returned in response
 
 	// Attributes, by group
@@ -78,7 +81,7 @@ func (md *messageDecoder) decode(m *Message) error {
 		m.Version.Minor, err = md.decodeU8()
 	}
 	if err == nil {
-		m.Code, err = md.decodeU16()
+		m.Code, err = md.decodeCode()
 	}
 	if err == nil {
 		m.RequestId, err = md.decodeU32()
@@ -161,6 +164,12 @@ func (md *messageDecoder) decodeTag() (Tag, error) {
 	md.off = md.cnt
 	t, err := md.decodeU8()
 	return Tag(t), err
+}
+
+// Decode a Code
+func (md *messageDecoder) decodeCode() (Code, error) {
+	code, err := md.decodeU16()
+	return Code(code), err
 }
 
 // Decode a single attribute
