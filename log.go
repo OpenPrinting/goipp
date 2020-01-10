@@ -6,7 +6,7 @@
  * Logging
  */
 
-package main
+package goipp
 
 import (
 	"bytes"

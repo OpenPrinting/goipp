@@ -4,7 +4,7 @@
  * See LICENSE for license terms and conditions
  */
 
-package main
+package goipp
 
 import (
 	"bytes"
@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"testing"
 
 	ipp "github.com/phin1x/go-ipp"
 )
@@ -44,7 +45,7 @@ func (b *buffer) Read(out []byte) (int, error) {
 	return av, nil
 }
 
-func main() {
+func TestGoipp(*testing.T) {
 	//client := ipp.NewIPPClient("192.168.1.102", 631, "", "", false)
 	//_, err := client.GetPrinterAttributes("printer", nil)
 	//check(err)

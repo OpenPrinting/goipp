@@ -6,7 +6,7 @@
  * Various constants
  */
 
-package main
+package goipp
 
 const (
 	// Default IPP version

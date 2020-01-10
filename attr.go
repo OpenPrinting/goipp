@@ -6,7 +6,7 @@
  * Message attributes
  */
 
-package main
+package goipp
 
 import (
 	"encoding/binary"

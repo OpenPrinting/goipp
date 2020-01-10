@@ -6,7 +6,7 @@
  * IPP Operation Codes
  */
 
-package main
+package goipp
 
 import (
 	"fmt"

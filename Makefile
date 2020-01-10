@@ -1,3 +1,6 @@
 all:
-	gotags -R . > tags
+	-gotags -R . > tags
 	go build
+
+test:
+	go test

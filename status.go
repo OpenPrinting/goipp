@@ -6,7 +6,7 @@
  * IPP Status Codes
  */
 
-package main
+package goipp
 
 import (
 	"fmt"

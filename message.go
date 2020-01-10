@@ -6,7 +6,7 @@
  * IPP protocol messages
  */
 
-package main
+package goipp
 
 import (
 	"encoding/binary"

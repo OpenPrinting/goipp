@@ -6,7 +6,7 @@
  * Values for message attributes
  */
 
-package main
+package goipp
 
 import (
 	"fmt"

@@ -6,7 +6,7 @@
  * IPP Tags
  */
 
-package main
+package goipp
 
 import (
 	"fmt"
