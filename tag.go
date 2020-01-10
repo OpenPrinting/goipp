@@ -72,7 +72,7 @@ func (tag Tag) IsDelimiter() bool {
 	return tag < 0x10
 }
 
-// String() returns a tag name in a form, as defined by RFC 8010
+// String() returns a tag name, as defined by RFC 8010
 func (tag Tag) String() string {
 	switch tag {
 	case TagZero:
