@@ -68,6 +68,8 @@ func main() {
 		log_debug("%s: %v", a.Name, a.Values)
 	}
 
+	m.Print(os.Stdout, true)
+
 	return
 
 	rsp, err := http.Post(url, "application/ipp", bytes.NewBuffer(data))

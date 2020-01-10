@@ -68,6 +68,60 @@ type Message struct {
 	Future15          []Attribute // /
 }
 
+// Pretty-print the message. Request parameter affects interpretation
+// of Message.Code: it is interpreted either as Op or as Status
+func (m *Message) Print(out io.Writer, request bool) {
+	out.Write([]byte("{\n"))
+
+	fmt.Fprintf(out, "\tVERSION %s\n", m.Version)
+
+	if request {
+		fmt.Fprintf(out, "\tOPERATION %s\n", Op(m.Code))
+	} else {
+		fmt.Fprintf(out, "\tSTATUS %s\n", Status(m.Code))
+	}
+
+	groups := []struct {
+		tag   Tag
+		attrs []Attribute
+	}{
+		{TagOperationGroup, m.Operation},
+		{TagJobGroup, m.Job},
+		{TagPrinterGroup, m.Printer},
+		{TagUnsupportedGroup, m.Unsupported},
+		{TagSubscriptionGroup, m.Subscription},
+		{TagEventNotificationGroup, m.EventNotification},
+		{TagResourceGroup, m.Resource},
+		{TagDocumentGroup, m.Document},
+		{TagSystemGroup, m.System},
+		{TagFuture11Group, m.Future11},
+		{TagFuture12Group, m.Future12},
+		{TagFuture13Group, m.Future13},
+		{TagFuture14Group, m.Future14},
+		{TagFuture15Group, m.Future15},
+	}
+
+	for _, grp := range groups {
+		if grp.attrs != nil {
+			fmt.Fprintf(out, "\tGROUP %s\n", grp.tag)
+			for _, attr := range grp.attrs {
+				tag := attr.Values[0].T
+				fmt.Fprintf(out, "\tATTR %s %s", tag, attr.Name)
+				for _, val := range attr.Values {
+					if val.T != tag {
+						fmt.Fprintf(out, " %s", tag)
+						tag = val.T
+					}
+					fmt.Fprintf(out, " %s", val.V)
+				}
+				out.Write([]byte("\n"))
+			}
+		}
+	}
+
+	out.Write([]byte("}\n"))
+}
+
 // Decode the message
 func (m *Message) Decode(in io.Reader) error {
 	md := messageDecoder{
