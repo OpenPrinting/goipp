@@ -155,7 +155,7 @@ func (a *Attribute) unpackResolution(tag Tag, value []byte) error {
 	val := Resolution{
 		Xres:  int(binary.BigEndian.Uint32(value[0:4])),
 		Yres:  int(binary.BigEndian.Uint32(value[4:8])),
-		Units: value[9],
+		Units: Units(value[9]),
 	}
 
 	a.AddValue(tag, val)
