@@ -18,9 +18,29 @@ import (
 // Type Code represents Op(operation) or Status codes
 type Code uint16
 
-// Type Version represents a protocol version
-type Version struct {
-	Major, Minor uint8
+// Type Version represents a protocol version. It consist
+// of Major and Minor version codes, packed into a single
+// 16-bit word
+type Version uint16
+
+// Make version
+func MakeVersion(major, minor uint8) Version {
+	return Version(major)<<16 | Version(minor)
+}
+
+// Get Major part of version
+func (v Version) Major() uint8 {
+	return uint8(v >> 8)
+}
+
+// Get Minor part of version
+func (v Version) Minor() uint8 {
+	return uint8(v)
+}
+
+// Convert version to string (i.e., 2.0)
+func (v Version) String() string {
+	return fmt.Sprintf("%d.%d", v.Major(), v.Minor())
 }
 
 // Type Message represents a single IPP message, which may be either
@@ -76,10 +96,7 @@ func (md *messageDecoder) decode(m *Message) error {
 
 	// Parse message header
 	var err error
-	m.Version.Major, err = md.decodeU8()
-	if err == nil {
-		m.Version.Minor, err = md.decodeU8()
-	}
+	m.Version, err = md.decodeVersion()
 	if err == nil {
 		m.Code, err = md.decodeCode()
 	}
@@ -164,6 +181,12 @@ func (md *messageDecoder) decodeTag() (Tag, error) {
 	md.off = md.cnt
 	t, err := md.decodeU8()
 	return Tag(t), err
+}
+
+// Decode a Version
+func (md *messageDecoder) decodeVersion() (Version, error) {
+	code, err := md.decodeU16()
+	return Version(code), err
 }
 
 // Decode a Code
