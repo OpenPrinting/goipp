@@ -15,7 +15,7 @@ import (
 	"io"
 )
 
-// Type Code represents Request or Status codes
+// Type Code represents Op(operation) or Status codes
 type Code uint16
 
 // Type Version represents a protocol version
