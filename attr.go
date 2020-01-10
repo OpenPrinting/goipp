@@ -115,7 +115,7 @@ func (a *Attribute) unpackDate(tag Tag, value []byte) error {
 	case len(value) == 9:
 		l = time.UTC
 	case value[8] == '+', value[8] == '-':
-		name := fmt.Sprintf("UTC%c%d", value[9])
+		name := fmt.Sprintf("UTC%c%d", value[8], value[9])
 		if value[10] != 0 {
 			name += fmt.Sprintf(":%d", value[10])
 		}
