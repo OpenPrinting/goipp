@@ -37,10 +37,10 @@ func (a *Attribute) unpack(tag Tag, value []byte) error {
 	case TagUnsupportedValue, TagDefault, TagUnknown, TagNotSettable,
 		TagDeleteAttr, TagAdminDefine:
 		// These tags not expected to have value
-		return nil
+		return a.unpackBinary(tag, value)
 
 	case TagText, TagName, TagReservedString, TagKeyword, TagURI, TagURIScheme,
-		TagCharset, TagLanguage, TagMimeType:
+		TagCharset, TagLanguage, TagMimeType, TagMemberName:
 		return a.unpackString(tag, value)
 
 	case TagDate:
@@ -51,9 +51,11 @@ func (a *Attribute) unpack(tag Tag, value []byte) error {
 
 	case TagRange:
 		return a.unpackRange(tag, value)
+
+	default:
+		return a.unpackBinary(tag, value)
 	}
 
-	return nil
 }
 
 // Unpack Integer value
@@ -225,4 +227,10 @@ func (a *Attribute) unpackStringWithLang(tag Tag, value []byte) error {
 
 ERROR:
 	return fmt.Errorf("Value of %s tag has invalid format", tag)
+}
+
+// Unpack Binary value
+func (a *Attribute) unpackBinary(tag Tag, value []byte) error {
+	a.AddValue(tag, Binary(value))
+	return nil
 }
