@@ -28,7 +28,7 @@ const DefaultVersion Version = 0x0200
 
 // MakeVersion makes version from major and minor parts
 func MakeVersion(major, minor uint8) Version {
-	return Version(major)<<16 | Version(minor)
+	return Version(major)<<8 | Version(minor)
 }
 
 // Major returns a major part of version
