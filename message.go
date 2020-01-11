@@ -109,13 +109,14 @@ func (m *Message) Print(out io.Writer, request bool) {
 		if grp.attrs != nil {
 			fmt.Fprintf(out, "\tGROUP %s\n", grp.tag)
 			for _, attr := range grp.attrs {
-				tag := attr.Values[0].T
-				fmt.Fprintf(out, "\tATTR %s %q", tag, attr.Name)
+				tag := TagZero
+				fmt.Fprintf(out, "\tATTR %q", attr.Name)
 				for _, val := range attr.Values {
 					if val.T != tag {
-						fmt.Fprintf(out, " %s:", tag)
+						fmt.Fprintf(out, " %s:", val.T)
 						tag = val.T
 					}
+
 					fmt.Fprintf(out, " %s", val.V)
 				}
 				out.Write([]byte("\n"))
