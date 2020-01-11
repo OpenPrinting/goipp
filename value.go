@@ -121,3 +121,13 @@ func (StringWithLang) isValue() {}
 
 // String converts StringWithLang value to string
 func (v StringWithLang) String() string { return v.Text + " [" + v.Lang + "]" }
+
+// Binary represents a raw binary Value
+type Binary []byte
+
+func (Binary) isValue() {}
+
+// String converts Range value to string
+func (v Binary) String() string {
+	return fmt.Sprintf("%x", []byte(v))
+}
