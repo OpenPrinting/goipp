@@ -14,7 +14,7 @@ import (
 
 // Tag represents a tag used in a binary representation
 // of the IPP message
-type Tag uint8
+type Tag int
 
 const (
 	// Delimiter tags

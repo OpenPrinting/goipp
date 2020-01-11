@@ -261,20 +261,44 @@ func (md *messageDecoder) decodeAttribute(tag Tag) (Attribute, error) {
 
 	// Obtain attribute name and raw value
 	attr.Name, err = md.decodeString()
-	if err == nil {
-		value, err = md.decodeBytes()
+	if err != nil {
+		goto ERROR
+	}
+
+	value, err = md.decodeBytes()
+	if err != nil {
+		goto ERROR
+	}
+
+	// Handle TagExtension
+	if tag == TagExtension {
+		if len(value) < 4 {
+			err = md.error("Extension tag truncated")
+			goto ERROR
+		}
+
+		t := binary.BigEndian.Uint32(value[:4])
+		value = value[4:]
+
+		if t > 0x7fffffff {
+			err = md.error("Extension tag out of range")
+			goto ERROR
+		}
+
+		tag = Tag(t)
 	}
 
 	// Unpack value
-	if err == nil {
-		err = attr.unpack(tag, value)
-	}
-
+	err = attr.unpack(tag, value)
 	if err != nil {
-		return Attribute{}, err
+		goto ERROR
 	}
 
 	return attr, nil
+
+	// Return a error
+ERROR:
+	return Attribute{}, err
 }
 
 // Decode a 8-bit integer
