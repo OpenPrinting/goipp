@@ -232,7 +232,7 @@ func (md *messageDecoder) decode(m *Message) error {
 	}
 
 	if err != nil {
-		err = fmt.Errorf("%s at %d", err, md.off)
+		err = fmt.Errorf("%s at 0x%x", err, md.off)
 	}
 
 	return err
