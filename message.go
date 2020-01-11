@@ -110,10 +110,10 @@ func (m *Message) Print(out io.Writer, request bool) {
 			fmt.Fprintf(out, "\tGROUP %s\n", grp.tag)
 			for _, attr := range grp.attrs {
 				tag := attr.Values[0].T
-				fmt.Fprintf(out, "\tATTR %s %s", tag, attr.Name)
+				fmt.Fprintf(out, "\tATTR %s %q", tag, attr.Name)
 				for _, val := range attr.Values {
 					if val.T != tag {
-						fmt.Fprintf(out, " %s", tag)
+						fmt.Fprintf(out, " %s:", tag)
 						tag = val.T
 					}
 					fmt.Fprintf(out, " %s", val.V)
