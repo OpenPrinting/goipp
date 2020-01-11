@@ -18,6 +18,167 @@ import (
 	ipp "github.com/phin1x/go-ipp"
 )
 
+/////////////////////////
+var test_message = []byte{
+	0x01, 0x01, // IPP version
+	0x00, 0x02, // Print-Job operation
+	0x00, 0x00, 0x00, 0x01, // Request ID
+
+	uint8(TagOperationGroup),
+
+	uint8(TagCharset),
+	0x00, 0x12, // Name length + name
+	'a', 't', 't', 'r', 'i', 'b', 'u', 't', 'e', 's', '-',
+	'c', 'h', 'a', 'r', 's', 'e', 't',
+	0x00, 0x05, // Value length + value
+	'u', 't', 'f', '-', '8',
+
+	uint8(TagLanguage),
+	0x00, 0x1b, // Name length + name
+	'a', 't', 't', 'r', 'i', 'b', 'u', 't', 'e', 's', '-',
+	'n', 'a', 't', 'u', 'r', 'a', 'l', '-', 'l', 'a', 'n',
+	'g', 'u', 'a', 'g', 'e',
+	0x00, 0x02, // Value length + value
+	'e', 'n',
+
+	uint8(TagURI),
+	0x00, 0x0b, // Name length + name
+	'p', 'r', 'i', 'n', 't', 'e', 'r', '-', 'u', 'r', 'i',
+	0x00, 0x1c, // Value length + value
+	'i', 'p', 'p', ':', '/', '/', 'l', 'o', 'c', 'a', 'l',
+	'h', 'o', 's', 't', '/', 'p', 'r', 'i', 'n', 't', 'e',
+	'r', 's', '/', 'f', 'o', 'o',
+
+	uint8(TagJobGroup),
+
+	uint8(TagBeginCollection),
+	0x00, 0x09, // Name length + name
+	'm', 'e', 'd', 'i', 'a', '-', 'c', 'o', 'l',
+	0x00, 0x00, // No value
+
+	uint8(TagMemberName),
+	0x00, 0x00, // No name
+	0x00, 0x0a, // Value length + value
+	'm', 'e', 'd', 'i', 'a', '-', 's', 'i', 'z', 'e',
+
+	uint8(TagBeginCollection),
+	0x00, 0x00, // Name length + name
+	0x00, 0x00, // No value
+
+	uint8(TagMemberName),
+	0x00, 0x00, // No name
+	0x00, 0x0b, // Value length + value
+	'x', '-', 'd', 'i', 'm', 'e', 'n', 's', 'i', 'o', 'n',
+
+	uint8(TagInteger),
+	0x00, 0x00, // No name
+	0x00, 0x04, // Value length + value
+	0x00, 0x00, 0x54, 0x56,
+
+	uint8(TagMemberName),
+	0x00, 0x00, // No name
+	0x00, 0x0b, // Value length + value
+	'y', '-', 'd', 'i', 'm', 'e', 'n', 's', 'i', 'o', 'n',
+
+	uint8(TagInteger),
+	0x00, 0x00, // No name
+	0x00, 0x04, // Value length + value
+	0x00, 0x00, 0x6d, 0x24,
+
+	uint8(TagEndCollection),
+	0x00, 0x00, // No name
+	0x00, 0x00, // No value
+
+	uint8(TagMemberName),
+	0x00, 0x00, // No name
+	0x00, 0x0b, // Value length + value
+	'm', 'e', 'd', 'i', 'a', '-', 'c', 'o', 'l', 'o', 'r',
+
+	uint8(TagKeyword),
+	0x00, 0x00, // No name
+	0x00, 0x04, // Value length + value
+	'b', 'l', 'u', 'e',
+
+	uint8(TagMemberName),
+	0x00, 0x00, // No name
+	0x00, 0x0a, // Value length + value
+	'm', 'e', 'd', 'i', 'a', '-', 't', 'y', 'p', 'e',
+
+	uint8(TagKeyword),
+	0x00, 0x00, // No name
+	0x00, 0x05, // Value length + value
+	'p', 'l', 'a', 'i', 'n',
+
+	uint8(TagEndCollection),
+	0x00, 0x00, // No name
+	0x00, 0x00, // No value
+
+	uint8(TagBeginCollection),
+	0x00, 0x00, // No name
+	0x00, 0x00, // No value
+
+	uint8(TagMemberName),
+	0x00, 0x00, // No name
+	0x00, 0x0a, // Value length + value
+	'm', 'e', 'd', 'i', 'a', '-', 's', 'i', 'z', 'e',
+
+	uint8(TagBeginCollection),
+	0x00, 0x00, // Name length + name
+	0x00, 0x00, // No value
+
+	uint8(TagMemberName),
+	0x00, 0x00, // No name
+	0x00, 0x0b, // Value length + value
+	'x', '-', 'd', 'i', 'm', 'e', 'n', 's', 'i', 'o', 'n',
+
+	uint8(TagInteger),
+	0x00, 0x00, // No name
+	0x00, 0x04, // Value length + value
+	0x00, 0x00, 0x52, 0x08,
+
+	uint8(TagMemberName),
+	0x00, 0x00, // No name
+	0x00, 0x0b, // Value length + value
+	'y', '-', 'd', 'i', 'm', 'e', 'n', 's', 'i', 'o', 'n',
+
+	uint8(TagInteger),
+	0x00, 0x00, // No name
+	0x00, 0x04, // Value length + value
+	0x00, 0x00, 0x74, 0x04,
+
+	uint8(TagEndCollection),
+	0x00, 0x00, // No name
+	0x00, 0x00, // No value
+
+	uint8(TagMemberName),
+	0x00, 0x00, // No name
+	0x00, 0x0b, // Value length + value
+	'm', 'e', 'd', 'i', 'a', '-', 'c', 'o', 'l', 'o', 'r',
+
+	uint8(TagKeyword),
+	0x00, 0x00, // No name
+	0x00, 0x05, // Value length + value
+	'p', 'l', 'a', 'i', 'd',
+
+	uint8(TagMemberName),
+	0x00, 0x00, // No name
+	0x00, 0x0a, // Value length + value
+	'm', 'e', 'd', 'i', 'a', '-', 't', 'y', 'p', 'e',
+
+	uint8(TagKeyword),
+	0x00, 0x00, // No name
+	0x00, 0x06, // Value length + value
+	'g', 'l', 'o', 's', 's', 'y',
+
+	uint8(TagEndCollection),
+	0x00, 0x00, // No name
+	0x00, 0x00, // No value
+
+	uint8(TagEnd),
+}
+
+/////////////////////////
+
 func check(err error) {
 	if err != nil && err != io.EOF {
 		fmt.Printf("%s\n", err)
@@ -62,7 +223,7 @@ func TestGoipp(*testing.T) {
 	log_dump(data)
 
 	var m Message
-	err = m.Decode(bytes.NewBuffer(data))
+	err = m.Decode(bytes.NewBuffer(test_message))
 	check(err)
 
 	for _, a := range m.Operation {
