@@ -138,7 +138,7 @@ func (m *Message) Decode(in io.Reader) error {
 // Type messageDecoder represents Message decoder
 type messageDecoder struct {
 	in  io.Reader // Input stream
-	off int       // Offset of last tag
+	off int       // Offset of last read
 	cnt int       // Count of read bytes
 }
 
@@ -178,7 +178,7 @@ func (md *messageDecoder) decode(m *Message) error {
 
 		switch tag {
 		case TagZero:
-			err = md.error("Invalid tag 0")
+			err = errors.New("Invalid tag 0")
 		case TagEnd:
 			done = true
 
@@ -220,15 +220,19 @@ func (md *messageDecoder) decode(m *Message) error {
 				if prev != nil {
 					prev.AddValue(attr.Values[0].T, attr.Values[0].V)
 				} else {
-					err = md.error("Additional value without preceding attribute")
+					err = errors.New("Additional value without preceding attribute")
 				}
 			case group != nil:
 				*group = append(*group, attr)
 				prev = &(*group)[len(*group)-1]
 			default:
-				err = md.error("Attribute without a group")
+				err = errors.New("Attribute without a group")
 			}
 		}
+	}
+
+	if err != nil {
+		err = fmt.Errorf("%s at %d", err, md.off)
 	}
 
 	return err
@@ -236,7 +240,6 @@ func (md *messageDecoder) decode(m *Message) error {
 
 // Decode a tag
 func (md *messageDecoder) decodeTag() (Tag, error) {
-	md.off = md.cnt
 	t, err := md.decodeU8()
 	return Tag(t), err
 }
@@ -273,7 +276,7 @@ func (md *messageDecoder) decodeAttribute(tag Tag) (Attribute, error) {
 	// Handle TagExtension
 	if tag == TagExtension {
 		if len(value) < 4 {
-			err = md.error("Extension tag truncated")
+			err = errors.New("Extension tag truncated")
 			goto ERROR
 		}
 
@@ -281,7 +284,7 @@ func (md *messageDecoder) decodeAttribute(tag Tag) (Attribute, error) {
 		value = value[4:]
 
 		if t > 0x7fffffff {
-			err = md.error("Extension tag out of range")
+			err = errors.New("Extension tag out of range")
 			goto ERROR
 		}
 
@@ -350,9 +353,12 @@ func (md *messageDecoder) decodeString() (string, error) {
 
 // Read a piece of raw data from input stream
 func (md *messageDecoder) read(data []byte) error {
+	md.off = md.cnt
+
 	for len(data) > 0 {
 		n, err := md.in.Read(data)
 		if err != nil {
+			md.off = md.cnt
 			return err
 		}
 
@@ -361,11 +367,4 @@ func (md *messageDecoder) read(data []byte) error {
 	}
 
 	return nil
-}
-
-// Create an error
-func (md *messageDecoder) error(format string, args ...interface{}) error {
-	s := fmt.Sprintf(format, args...)
-	s += fmt.Sprintf(" at 0x%x", md.off)
-	return errors.New(s)
 }
