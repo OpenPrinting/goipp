@@ -15,41 +15,44 @@ import (
 	"io"
 )
 
-// Type Code represents Op(operation) or Status codes
+// Code represents Op(operation) or Status codes
 type Code uint16
 
-// Type Version represents a protocol version. It consist
+// Version represents a protocol version. It consist
 // of Major and Minor version codes, packed into a single
 // 16-bit word
 type Version uint16
 
-// Make version
+// DefaultVersion is the default IPP version
+const DefaultVersion Version = 0x0200
+
+// MakeVersion makes version from major and minor parts
 func MakeVersion(major, minor uint8) Version {
 	return Version(major)<<16 | Version(minor)
 }
 
-// Get Major part of version
+// Major returns a major part of version
 func (v Version) Major() uint8 {
 	return uint8(v >> 8)
 }
 
-// Get Minor part of version
+// Minor returns a minot part of version
 func (v Version) Minor() uint8 {
 	return uint8(v)
 }
 
-// Convert version to string (i.e., 2.0)
+// String converts version to string (i.e., 2.0)
 func (v Version) String() string {
 	return fmt.Sprintf("%d.%d", v.Major(), v.Minor())
 }
 
-// Type Message represents a single IPP message, which may be either
+// Message represents a single IPP message, which may be either
 // client request or server response
 type Message struct {
 	// Common header
 	Version   Version // Protocol version
 	Code      Code    // Operation for request, status for response
-	RequestId uint32  // Set in request, returned in response
+	RequestID uint32  // Set in request, returned in response
 
 	// Attributes, by group
 	Operation         []Attribute // Operation attributes
@@ -68,8 +71,9 @@ type Message struct {
 	Future15          []Attribute // /
 }
 
-// Pretty-print the message. Request parameter affects interpretation
-// of Message.Code: it is interpreted either as Op or as Status
+// Print pretty-prints the message. The 'request' parameter affects
+// interpretation of Message.Code: it is interpreted either
+// as Op or as Status
 func (m *Message) Print(out io.Writer, request bool) {
 	out.Write([]byte("{\n"))
 
@@ -155,7 +159,7 @@ func (md *messageDecoder) decode(m *Message) error {
 		m.Code, err = md.decodeCode()
 	}
 	if err == nil {
-		m.RequestId, err = md.decodeU32()
+		m.RequestID, err = md.decodeU32()
 	}
 
 	// Now parse attributes
@@ -315,9 +319,9 @@ func (md *messageDecoder) decodeString() (string, error) {
 	data, err := md.decodeBytes()
 	if err != nil {
 		return "", err
-	} else {
-		return string(data), nil
 	}
+
+	return string(data), nil
 }
 
 // Read a piece of raw data from input stream
@@ -326,10 +330,10 @@ func (md *messageDecoder) read(data []byte) error {
 		n, err := md.in.Read(data)
 		if err != nil {
 			return err
-		} else {
-			md.cnt += n
-			data = data[n:]
 		}
+
+		md.cnt += n
+		data = data[n:]
 	}
 
 	return nil

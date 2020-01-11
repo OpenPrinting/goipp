@@ -12,7 +12,7 @@ import (
 	"fmt"
 )
 
-// Type Op represents an IPP Status Code
+// Status represents an IPP Status Code
 type Status Code
 
 const (
@@ -38,7 +38,7 @@ const (
 	StatusErrorRequestValue               Status = 0x0409 // client-error-request-value-too-long
 	StatusErrorDocumentFormatNotSupported Status = 0x040a // client-error-document-format-not-supported
 	StatusErrorAttributesOrValues         Status = 0x040b // client-error-attributes-or-values-not-supported
-	StatusErrorUriScheme                  Status = 0x040c // client-error-uri-scheme-not-supported
+	StatusErrorURIScheme                  Status = 0x040c // client-error-uri-scheme-not-supported
 	StatusErrorCharset                    Status = 0x040d // client-error-charset-not-supported
 	StatusErrorConflicting                Status = 0x040e // client-error-conflicting-attributes
 	StatusErrorCompressionNotSupported    Status = 0x040f // client-error-compression-not-supported
@@ -121,7 +121,7 @@ func (s Status) String() string {
 		return "client-error-document-format-not-supported"
 	case StatusErrorAttributesOrValues:
 		return "client-error-attributes-or-values-not-supported"
-	case StatusErrorUriScheme:
+	case StatusErrorURIScheme:
 		return "client-error-uri-scheme-not-supported"
 	case StatusErrorCharset:
 		return "client-error-charset-not-supported"

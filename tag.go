@@ -12,7 +12,7 @@ import (
 	"fmt"
 )
 
-// Type Tag represents a tag used in a binary representation
+// Tag represents a tag used in a binary representation
 // of the IPP message
 type Tag uint8
 
@@ -58,8 +58,8 @@ const (
 	TagName             Tag = 0x42 // Name value
 	TagReservedString   Tag = 0x43 // Reserved for future string value
 	TagKeyword          Tag = 0x44 // Keyword value
-	TagUri              Tag = 0x45 // URI value
-	TagUriScheme        Tag = 0x46 // URI scheme value
+	TagURI              Tag = 0x45 // URI value
+	TagURIScheme        Tag = 0x46 // URI scheme value
 	TagCharset          Tag = 0x47 // Character set value
 	TagLanguage         Tag = 0x48 // Language value
 	TagMimeType         Tag = 0x49 // MIME media type value
@@ -67,7 +67,7 @@ const (
 	TagExtension        Tag = 0x7f // Extension point for 32-bit tags
 )
 
-// Check if Tag is delimiter
+// IsDelimiter returns true for delimiter tags
 func (tag Tag) IsDelimiter() bool {
 	return tag < 0x10
 }
@@ -141,9 +141,9 @@ func (tag Tag) String() string {
 		return "nameWithoutLanguage"
 	case TagKeyword:
 		return "keyword"
-	case TagUri:
+	case TagURI:
 		return "uri"
-	case TagUriScheme:
+	case TagURIScheme:
 		return "uriScheme"
 	case TagCharset:
 		return "charset"

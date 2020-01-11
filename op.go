@@ -12,16 +12,16 @@ import (
 	"fmt"
 )
 
-// Type Op represents an IPP Operation Code
+// Op represents an IPP Operation Code
 type Op Code
 
 const (
 	OpPrintJob             Op = 0x0002 // Print-Job: Print a single file
-	OpPrintUri             Op = 0x0003 // Print-URI: Print a single URL
+	OpPrintURI             Op = 0x0003 // Print-URI: Print a single URL
 	OpValidateJob          Op = 0x0004 // Validate-Job: Validate job values prior to submission
 	OpCreateJob            Op = 0x0005 // Create-Job: Create an empty print job
 	OpSendDocument         Op = 0x0006 // Send-Document: Add a file to a job
-	OpSendUri              Op = 0x0007 // Send-URI: Add a URL to a job
+	OpSendURI              Op = 0x0007 // Send-URI: Add a URL to a job
 	OpCancelJob            Op = 0x0008 // Cancel-Job: Cancel a job
 	OpGetJobAttributes     Op = 0x0009 // Get-Job-Attribute: Get information about a job
 	OpGetJobs              Op = 0x000a // Get-Jobs: Get a list of jobs
@@ -146,7 +146,7 @@ func (op Op) String() string {
 	switch op {
 	case OpPrintJob:
 		return "Print-Job"
-	case OpPrintUri:
+	case OpPrintURI:
 		return "Print-URI"
 	case OpValidateJob:
 		return "Validate-Job"
@@ -154,7 +154,7 @@ func (op Op) String() string {
 		return "Create-Job"
 	case OpSendDocument:
 		return "Send-Document"
-	case OpSendUri:
+	case OpSendURI:
 		return "Send-URI"
 	case OpCancelJob:
 		return "Cancel-Job"

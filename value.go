@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// Type Values represents a slice of Attribute values with tags
+// Values represents a slice of Attribute values with tags
 type Values []struct {
 	T Tag   // The tag
 	V Value // The value
@@ -27,37 +27,37 @@ func (values *Values) Add(t Tag, v Value) {
 	}{t, v})
 }
 
-// Type Value represents a attribute value
+// Value represents an attribute value
 type Value interface {
 	String() string
 	isValue()
 }
 
-// Type Integer represents an Integer value
+// Integer represents an Integer Value
 type Integer uint32
 
 func (Integer) isValue() {}
 
-// Convert Integer value to string
+// String converts Integer value to string
 func (v Integer) String() string { return fmt.Sprintf("%d", uint32(v)) }
 
-// Type Boolean represents a Boolean value
+// Boolean represents a boolean Value
 type Boolean bool
 
 func (Boolean) isValue() {}
 
-// Convert Boolean value to string
+// String converts Boolean value to string
 func (v Boolean) String() string { return fmt.Sprintf("%t", bool(v)) }
 
-// Type Strings represents a string value
+// String represents a string Value
 type String string
 
 func (String) isValue() {}
 
-// Convert Boolean value to string
+// String converts String value to string
 func (v String) String() string { return string(v) }
 
-// Type Time represents a DateTime value
+// Time represents a DateTime Value
 type Time struct{ time.Time }
 
 func (Time) isValue() {}
@@ -65,7 +65,7 @@ func (Time) isValue() {}
 // Convert Time value to string
 func (v Time) String() string { return v.Time.Format(time.RFC3339) }
 
-// Type Resolution represents a resolution value
+// Resolution represents a resolution Value
 type Resolution struct {
 	Xres, Yres int   // X/Y resolutions
 	Units      Units // Resolution units
@@ -73,12 +73,12 @@ type Resolution struct {
 
 func (Resolution) isValue() {}
 
-// Convert Resolution value to string
+// String converts Resolution value to string
 func (v Resolution) String() string {
 	return fmt.Sprintf("%dx%d%s", v.Xres, v.Yres, v.Units)
 }
 
-// Type Units represents resolution units
+// Units represents resolution units
 type Units uint8
 
 const (
@@ -86,7 +86,7 @@ const (
 	UnitsDpcm Units = 4 // Dots per cm
 )
 
-// Convert Units to string
+// String converts Units to string
 func (u Units) String() string {
 	switch u {
 	case UnitsDpi:
@@ -98,26 +98,26 @@ func (u Units) String() string {
 	}
 }
 
-// Type Range represents a range of integers
+// Range represents a range of integers Value
 type Range struct {
 	Lower, Upper int // Lower/upper bounds
 }
 
 func (Range) isValue() {}
 
-// Convert Range value to string
+// String converts Range value to string
 func (v Range) String() string {
 	return fmt.Sprintf("%d-%d", v.Lower, v.Upper)
 }
 
-// Type StringWithLang represents a combination of
-// Two strings: one is a name of natural language and
-// second is a text on this language
+// StringWithLang represents a combination of two strings:
+// one is a name of natural language and second is a text
+// on this language
 type StringWithLang struct {
 	Lang, Text string // Language and text
 }
 
 func (StringWithLang) isValue() {}
 
-// Convert StringWithLang value to string
+// String converts StringWithLang value to string
 func (v StringWithLang) String() string { return v.Text + " [" + v.Lang + "]" }

@@ -14,13 +14,13 @@ import (
 	"time"
 )
 
-// Type Attribute represents a single attribute
+// Attribute represents a single attribute
 type Attribute struct {
-	Name   string
-	Values Values
+	Name   string // Attribute name
+	Values Values // Slice of values
 }
 
-// Add value to attribute's values
+// AddValue add value to attribute's values
 func (a *Attribute) AddValue(tag Tag, val Value) {
 	a.Values.Add(tag, val)
 }
@@ -39,7 +39,7 @@ func (a *Attribute) unpack(tag Tag, value []byte) error {
 		// These tags not expected to have value
 		return nil
 
-	case TagText, TagName, TagReservedString, TagKeyword, TagUri, TagUriScheme,
+	case TagText, TagName, TagReservedString, TagKeyword, TagURI, TagURIScheme,
 		TagCharset, TagLanguage, TagMimeType:
 		return a.unpackString(tag, value)
 

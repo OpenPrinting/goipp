@@ -9,9 +9,6 @@
 package goipp
 
 const (
-	// Default IPP version
-	DefaultVersion Version = 0x0200
-
-	// Content type for IPP messages
+	// ContentType is the HTTP content type for IPP messages
 	ContentType = "application/ipp"
 )
