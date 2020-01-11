@@ -20,7 +20,7 @@ type Attribute struct {
 	Values Values // Slice of values
 }
 
-// AddValue add value to attribute's values
+// AddValue adds value to attribute's values
 func (a *Attribute) AddValue(tag Tag, val Value) {
 	a.Values.Add(tag, val)
 }
