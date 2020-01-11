@@ -9,6 +9,7 @@
 package goipp
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 )
@@ -25,6 +26,25 @@ func (values *Values) Add(t Tag, v Value) {
 		T Tag
 		V Value
 	}{t, v})
+}
+
+// String converts Values to string
+func (values Values) String() string {
+	if len(values) == 1 {
+		return values[0].V.String()
+	}
+
+	var buf bytes.Buffer
+	buf.Write([]byte("["))
+	for i, v := range values {
+		if i != 0 {
+			buf.Write([]byte(","))
+		}
+		buf.Write([]byte(v.V.String()))
+	}
+	buf.Write([]byte("]"))
+
+	return buf.String()
 }
 
 // Value represents an attribute value
@@ -130,4 +150,24 @@ func (Binary) isValue() {}
 // String converts Range value to string
 func (v Binary) String() string {
 	return fmt.Sprintf("%x", []byte(v))
+}
+
+// Collection represents a collection of attributes
+type Collection []Attribute
+
+func (Collection) isValue() {}
+
+// String converts Collection to string
+func (v Collection) String() string {
+	var buf bytes.Buffer
+	buf.Write([]byte("{"))
+	for i, attr := range v {
+		if i > 0 {
+			buf.Write([]byte(" "))
+		}
+		fmt.Fprintf(&buf, "%s=%s", attr.Name, attr.Values)
+	}
+	buf.Write([]byte("}"))
+
+	return buf.String()
 }
