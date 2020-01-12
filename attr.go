@@ -28,9 +28,11 @@ func (attrs *Attributes) Add(attr Attribute) {
 	*attrs = append(*attrs, attr)
 }
 
-// AddValue adds value to attribute's values
-func (a *Attribute) AddValue(tag Tag, val Value) {
-	a.Values.Add(tag, val)
+// Make Attribute with single value
+func MakeAttribute(name string, tag Tag, value Value) Attribute {
+	attr := Attribute{Name: name}
+	attr.Values.Add(tag, value)
+	return attr
 }
 
 // Unpack attribute value
@@ -72,7 +74,7 @@ func (a *Attribute) unpackInteger(tag Tag, value []byte) error {
 		return fmt.Errorf("Value of %s tag must be 4 bytes", tag)
 	}
 
-	a.AddValue(tag, Integer(binary.BigEndian.Uint32(value)))
+	a.Values.Add(tag, Integer(binary.BigEndian.Uint32(value)))
 	return nil
 }
 
@@ -82,13 +84,13 @@ func (a *Attribute) unpackBoolean(tag Tag, value []byte) error {
 		return fmt.Errorf("Value of %s tag must be 1 byte", tag)
 	}
 
-	a.AddValue(tag, Boolean(value[0] != 0))
+	a.Values.Add(tag, Boolean(value[0] != 0))
 	return nil
 }
 
 // Unpack String value
 func (a *Attribute) unpackString(tag Tag, value []byte) error {
-	a.AddValue(tag, String(value))
+	a.Values.Add(tag, String(value))
 	return nil
 }
 
@@ -152,7 +154,7 @@ func (a *Attribute) unpackDate(tag Tag, value []byte) error {
 		l,                                        // FIXME
 	)
 
-	a.AddValue(tag, Time{t})
+	a.Values.Add(tag, Time{t})
 	return nil
 }
 
@@ -168,7 +170,7 @@ func (a *Attribute) unpackResolution(tag Tag, value []byte) error {
 		Units: Units(value[9]),
 	}
 
-	a.AddValue(tag, val)
+	a.Values.Add(tag, val)
 	return nil
 }
 
@@ -183,7 +185,7 @@ func (a *Attribute) unpackRange(tag Tag, value []byte) error {
 		Upper: int(binary.BigEndian.Uint32(value[4:8])),
 	}
 
-	a.AddValue(tag, val)
+	a.Values.Add(tag, val)
 	return nil
 }
 
@@ -230,7 +232,7 @@ func (a *Attribute) unpackStringWithLang(tag Tag, value []byte) error {
 	}
 
 	// Add a value
-	a.AddValue(tag, StringWithLang{Lang: lang, Text: text})
+	a.Values.Add(tag, StringWithLang{Lang: lang, Text: text})
 	return nil
 
 ERROR:
@@ -239,6 +241,6 @@ ERROR:
 
 // Unpack Binary value
 func (a *Attribute) unpackBinary(tag Tag, value []byte) error {
-	a.AddValue(tag, Binary(value))
+	a.Values.Add(tag, Binary(value))
 	return nil
 }

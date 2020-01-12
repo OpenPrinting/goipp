@@ -108,7 +108,7 @@ func (md *messageDecoder) decode(m *Message) error {
 			case err != nil:
 			case attr.Name == "":
 				if prev != nil {
-					prev.AddValue(attr.Values[0].T, attr.Values[0].V)
+					prev.Values.Add(attr.Values[0].T, attr.Values[0].V)
 				} else {
 					err = errors.New("Additional value without preceding attribute")
 				}
