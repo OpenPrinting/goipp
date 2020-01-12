@@ -8,18 +8,14 @@ package goipp
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"testing"
-
-	ipp "github.com/phin1x/go-ipp"
 )
 
-/////////////////////////
-var test_message = []byte{
+// The good message - 1
+var good_message_1 = []byte{
 	0x01, 0x01, // IPP version
 	0x00, 0x02, // Print-Job operation
 	0x00, 0x00, 0x00, 0x01, // Request ID
@@ -177,77 +173,175 @@ var test_message = []byte{
 	uint8(TagEnd),
 }
 
-/////////////////////////
+// The good message - 2
+var good_message_2 = []byte{
+	0x01, 0x01, // IPP version
+	0x00, 0x02, // Print-Job operation
+	0x00, 0x00, 0x00, 0x01, // Request ID
 
-func check(err error) {
-	if err != nil && err != io.EOF {
+	uint8(TagOperationGroup),
+
+	uint8(TagInteger),
+	0x00, 0x1f, // Name length + name
+	'n', 'o', 't', 'i', 'f', 'y', '-', 'l', 'e', 'a', 's', 'e',
+	'-', 'd', 'u', 'r', 'a', 't', 'i', 'o', 'n', '-', 's', 'u',
+	'p', 'p', 'o', 'r', 't', 'e', 'd',
+	0x00, 0x04, // Value length + value
+	0x00, 0x00, 0x00, 0x01,
+
+	uint8(TagRange),
+	0x00, 0x00, // No name
+	0x00, 0x08, // Value length + value
+	0x00, 0x00, 0x00, 0x10,
+	0x00, 0x00, 0x00, 0x20,
+
+	uint8(TagEnd),
+}
+
+// The bad message - 1
+var bad_message_1 = []byte{
+	0x01, 0x01, // IPP version */
+	0x00, 0x02, // Print-Job operation */
+	0x00, 0x00, 0x00, 0x01, // Request ID */
+
+	uint8(TagOperationGroup),
+
+	uint8(TagCharset),
+
+	0x00, 0x12, // Name length + name
+	'a', 't', 't', 'r', 'i', 'b', 'u', 't', 'e', 's', '-',
+	'c', 'h', 'a', 'r', 's', 'e', 't',
+	0x00, 0x05, // Value length + value
+	'u', 't', 'f', '-', '8',
+
+	uint8(TagLanguage),
+	0x00, 0x1b, // Name length + name
+	'a', 't', 't', 'r', 'i', 'b', 'u', 't', 'e', 's', '-',
+	'n', 'a', 't', 'u', 'r', 'a', 'l', '-', 'l', 'a', 'n',
+	'g', 'u', 'a', 'g', 'e',
+	0x00, 0x02, // Value length + value
+	'e', 'n',
+
+	uint8(TagURI),
+	0x00, 0x0b, // Name length + name
+	'p', 'r', 'i', 'n', 't', 'e', 'r', '-', 'u', 'r', 'i',
+	0x00, 0x1c, // Value length + value
+	'i', 'p', 'p', ':', '/', '/', 'l', 'o', 'c', 'a', 'l',
+	'h', 'o', 's', 't', '/', 'p', 'r', 'i', 'n', 't', 'e',
+	'r', 's', '/', 'f', 'o', 'o',
+
+	uint8(TagJobGroup),
+
+	uint8(TagBeginCollection),
+	0x00, 0x09, // Name length + name
+	'm', 'e', 'd', 'i', 'a', '-', 'c', 'o', 'l',
+	0x00, 0x00, // No value
+
+	uint8(TagBeginCollection),
+	0x00, 0x0a, // Name length + name
+	'm', 'e', 'd', 'i', 'a', '-', 's', 'i', 'z', 'e',
+	0x00, 0x00, // No value
+
+	uint8(TagInteger),
+	0x00, 0x0b, // Name length + name
+	'x', '-', 'd', 'i', 'm', 'e', 'n', 's', 'i', 'o', 'n',
+	0x00, 0x04, // Value length + value
+	0x00, 0x00, 0x54, 0x56,
+
+	uint8(TagInteger),
+	0x00, 0x0b, // Name length + name
+	'y', '-', 'd', 'i', 'm', 'e', 'n', 's', 'i', 'o', 'n',
+	0x00, 0x04, // Value length + value
+	0x00, 0x00, 0x6d, 0x24,
+
+	uint8(TagEndCollection),
+	0x00, 0x00, // No name
+	0x00, 0x00, // No value
+
+	uint8(TagEndCollection),
+	0x00, 0x00, // No name
+	0x00, 0x00, // No value
+
+	uint8(TagEnd),
+}
+
+func check(t *testing.T, err error, mustFail bool) {
+	if err != nil {
+		fmt.Printf("%s\n", err)
+	}
+
+	if mustFail {
+		if err != nil {
+			err = nil
+		} else {
+			err = errors.New("Non-nil error expected")
+		}
+	}
+
+	if err != nil {
 		fmt.Printf("%s\n", err)
 		os.Exit(1)
 	}
 }
 
-type buffer struct {
-	data []byte
-	off  int
-}
-
-func (b *buffer) Read(out []byte) (int, error) {
-	av := len(b.data) - b.off
-	if av == 0 {
-		return 0, io.EOF
-	}
-
-	av = copy(out, b.data[b.off:])
-	log_debug("0x%x: %d bytes of %d, next: 0x%x: %x",
-		b.off, av, cap(out), b.off+av, out[:av])
-
-	b.off += av
-
-	return av, nil
-}
-
-func TestGoipp(*testing.T) {
-	//client := ipp.NewIPPClient("192.168.1.102", 631, "", "", false)
-	//_, err := client.GetPrinterAttributes("printer", nil)
-	//check(err)
-
-	//url := "http://192.168.1.102:631"
-	url := "http://localhost:631"
-
-	rq := ipp.NewRequest(ipp.OperationGetPrinterAttributes, 1)
-	rq.OperationAttributes[ipp.OperationAttributePrinterURI] = url
-	rq.OperationAttributes[ipp.OperationAttributeRequestedAttributes] = ipp.DefaultPrinterAttributes
-
-	data, err := rq.Encode()
-	check(err)
-	log_dump(test_message)
-
-	var m Message
-	err = m.Decode(bytes.NewBuffer(test_message))
-	check(err)
-
-	for _, a := range m.Operation {
-		log_debug("%s: %v", a.Name, a.Values)
-	}
-
-	m.Print(os.Stdout, true)
-
-	return
-
-	rsp, err := http.Post(url, "application/ipp", bytes.NewBuffer(data))
-	check(err)
-
-	log_debug("status %s", rsp.Status)
-	data, err = ioutil.ReadAll(rsp.Body)
-	check(err)
-	rsp.Body.Close()
-
+func testDecode(t *testing.T, data []byte, mustFail bool) {
 	log_dump(data)
 
-	dec := ipp.NewResponseDecoder(&buffer{data, 0})
-	ipprsp, err := dec.Decode(nil)
-	check(err)
-	_ = ipprsp
+	var m Message
+	err := m.Decode(bytes.NewBuffer(data))
+	check(t, err, mustFail)
 
-	log_debug("%v", ipprsp)
+	m.Print(os.Stdout, true)
+}
+
+func TestGoipp(t *testing.T) {
+	testDecode(t, good_message_1, false)
+	testDecode(t, good_message_2, false)
+	testDecode(t, bad_message_1, true)
+
+	/*
+		//client := ipp.NewIPPClient("192.168.1.102", 631, "", "", false)
+		//_, err := client.GetPrinterAttributes("printer", nil)
+		//check(err)
+
+		//url := "http://192.168.1.102:631"
+		url := "http://localhost:631"
+
+		rq := ipp.NewRequest(ipp.OperationGetPrinterAttributes, 1)
+		rq.OperationAttributes[ipp.OperationAttributePrinterURI] = url
+		rq.OperationAttributes[ipp.OperationAttributeRequestedAttributes] = ipp.DefaultPrinterAttributes
+
+		data, err := rq.Encode()
+		check(err)
+		log_dump(good_message_1)
+
+		var m Message
+		err = m.Decode(bytes.NewBuffer(test_message))
+		check(err)
+
+		for _, a := range m.Operation {
+			log_debug("%s: %v", a.Name, a.Values)
+		}
+
+		m.Print(os.Stdout, true)
+
+		return
+
+		rsp, err := http.Post(url, "application/ipp", bytes.NewBuffer(data))
+		check(err)
+
+		log_debug("status %s", rsp.Status)
+		data, err = ioutil.ReadAll(rsp.Body)
+		check(err)
+		rsp.Body.Close()
+
+		log_dump(data)
+
+		dec := ipp.NewResponseDecoder(&buffer{data, 0})
+		ipprsp, err := dec.Decode(nil)
+		check(err)
+		_ = ipprsp
+
+		log_debug("%v", ipprsp)
+	*/
 }
