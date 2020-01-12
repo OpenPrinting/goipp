@@ -107,24 +107,49 @@ func (m *Message) Print(out io.Writer, request bool) {
 
 	for _, grp := range groups {
 		if grp.attrs != nil {
-			fmt.Fprintf(out, "\tGROUP %s\n", grp.tag)
+			fmt.Fprintf(out, "\n\tGROUP %s\n", grp.tag)
 			for _, attr := range grp.attrs {
-				tag := TagZero
-				fmt.Fprintf(out, "\tATTR %q", attr.Name)
-				for _, val := range attr.Values {
-					if val.T != tag {
-						fmt.Fprintf(out, " %s:", val.T)
-						tag = val.T
-					}
-
-					fmt.Fprintf(out, " %s", val.V)
-				}
+				m.printAttribute(out, attr, 1)
 				out.Write([]byte("\n"))
 			}
 		}
 	}
 
 	out.Write([]byte("}\n"))
+}
+
+// Pretty-print an attribute. Handles Collection attributes
+// recursively
+func (m *Message) printAttribute(out io.Writer, attr Attribute, indent int) {
+	m.printIndent(out, indent)
+	fmt.Fprintf(out, "ATTR %q", attr.Name)
+
+	tag := TagZero
+	for _, val := range attr.Values {
+		if val.T != tag {
+			fmt.Fprintf(out, " %s:", val.T)
+			tag = val.T
+		}
+
+		if collection, ok := val.V.(Collection); ok {
+			out.Write([]byte(" {\n"))
+			for _, attr2 := range collection {
+				m.printAttribute(out, attr2, indent+1)
+				out.Write([]byte("\n"))
+			}
+			m.printIndent(out, indent)
+			out.Write([]byte("}"))
+		} else {
+			fmt.Fprintf(out, " %s", val.V)
+		}
+	}
+}
+
+// Print indentation
+func (m *Message) printIndent(out io.Writer, indent int) {
+	for i := 0; i < indent; i++ {
+		out.Write([]byte("\t"))
+	}
 }
 
 // Decode the message
