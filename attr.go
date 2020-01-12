@@ -20,6 +20,14 @@ type Attribute struct {
 	Values Values // Slice of values
 }
 
+// Attributes represents a slice of attributes
+type Attributes []Attribute
+
+// Add Attribute to Attributes
+func (attrs *Attributes) Add(attr Attribute) {
+	*attrs = append(*attrs, attr)
+}
+
 // AddValue adds value to attribute's values
 func (a *Attribute) AddValue(tag Tag, val Value) {
 	a.Values.Add(tag, val)

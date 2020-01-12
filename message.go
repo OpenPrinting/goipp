@@ -53,20 +53,20 @@ type Message struct {
 	RequestID uint32  // Set in request, returned in response
 
 	// Attributes, by group
-	Operation         []Attribute // Operation attributes
-	Job               []Attribute // Job attributes
-	Printer           []Attribute // Printer attributes
-	Unsupported       []Attribute // Unsupported attributes
-	Subscription      []Attribute // Subscription attributes
-	EventNotification []Attribute // Event Notification attributes
-	Resource          []Attribute // Resource attributes
-	Document          []Attribute // Document attributes
-	System            []Attribute // System attributes
-	Future11          []Attribute // \
-	Future12          []Attribute //  \
-	Future13          []Attribute //   | Reserved for future extensions
-	Future14          []Attribute //  /
-	Future15          []Attribute // /
+	Operation         Attributes // Operation attributes
+	Job               Attributes // Job attributes
+	Printer           Attributes // Printer attributes
+	Unsupported       Attributes // Unsupported attributes
+	Subscription      Attributes // Subscription attributes
+	EventNotification Attributes // Event Notification attributes
+	Resource          Attributes // Resource attributes
+	Document          Attributes // Document attributes
+	System            Attributes // System attributes
+	Future11          Attributes // \
+	Future12          Attributes //  \
+	Future13          Attributes //   | Reserved for future extensions
+	Future14          Attributes //  /
+	Future15          Attributes // /
 }
 
 // NewRequest creates a new request message

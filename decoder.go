@@ -44,7 +44,7 @@ func (md *messageDecoder) decode(m *Message) error {
 
 	// Now parse attributes
 	done := false
-	var group *[]Attribute
+	var group *Attributes
 	var attr Attribute
 	var prev *Attribute
 
@@ -113,7 +113,7 @@ func (md *messageDecoder) decode(m *Message) error {
 					err = errors.New("Additional value without preceding attribute")
 				}
 			case group != nil:
-				*group = append(*group, attr)
+				group.Add(attr)
 				prev = &(*group)[len(*group)-1]
 			default:
 				err = errors.New("Attribute without a group")
