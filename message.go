@@ -36,7 +36,7 @@ func (v Version) Major() uint8 {
 	return uint8(v >> 8)
 }
 
-// Minor returns a minot part of version
+// Minor returns a minor part of version
 func (v Version) Minor() uint8 {
 	return uint8(v)
 }
