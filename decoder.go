@@ -24,13 +24,13 @@ type messageDecoder struct {
 
 // Decode the message
 func (md *messageDecoder) decode(m *Message) error {
-	/*
-	   1 byte:   VersionMajor
-	   1 byte:   VersionMinor
-	   2 bytes:  operation-id or status-code
-	   variable: attributes
-	   1 byte:   end-of-attributes-tag
-	*/
+	// Wire format:
+	//
+	//   2 bytes:  Version
+	//   2 bytes:  Code (Operation or Status)
+	//   4 bytes:  RequestID
+	//   variable: attributes
+	//   1 byte:   TagEnd
 
 	// Parse message header
 	var err error
