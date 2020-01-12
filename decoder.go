@@ -142,7 +142,7 @@ func (md *messageDecoder) decodeCollection() (Collection, error) {
 		if tag != TagEndCollection && tag != TagMemberName {
 			err = fmt.Errorf(
 				"Collection: expected %s or %s, got %s",
-				TagMemberName, TagMemberName, tag)
+				TagMemberName, TagEndCollection, tag)
 			return nil, err
 		}
 
