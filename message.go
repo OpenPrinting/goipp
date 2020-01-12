@@ -69,6 +69,27 @@ type Message struct {
 	Future15          []Attribute // /
 }
 
+// NewRequest creates a new request message
+//
+// Use DefaultVersion as a first argument, if you don't
+// have any specific needs
+func NewRequest(v Version, op Op) *Message {
+	return &Message{
+		Version: v,
+		Code:    Code(op),
+	}
+}
+
+// NewResponse creates a new response message
+//
+// Use DefaultVersion as a first argument, if you don't
+func NewResponse(v Version, status Status) *Message {
+	return &Message{
+		Version: v,
+		Code:    Code(status),
+	}
+}
+
 // Print pretty-prints the message. The 'request' parameter affects
 // interpretation of Message.Code: it is interpreted either
 // as Op or as Status
