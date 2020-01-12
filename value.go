@@ -28,7 +28,7 @@ func (values *Values) Add(t Tag, v Value) {
 	}{t, v})
 }
 
-// String converts Values to string
+// String() converts Values to string
 func (values Values) String() string {
 	if len(values) == 1 {
 		return values[0].V.String()
@@ -58,7 +58,7 @@ type Integer uint32
 
 func (Integer) isValue() {}
 
-// String converts Integer value to string
+// String() converts Integer value to string
 func (v Integer) String() string { return fmt.Sprintf("%d", uint32(v)) }
 
 // Boolean represents a boolean Value
@@ -66,7 +66,7 @@ type Boolean bool
 
 func (Boolean) isValue() {}
 
-// String converts Boolean value to string
+// String() converts Boolean value to string
 func (v Boolean) String() string { return fmt.Sprintf("%t", bool(v)) }
 
 // String represents a string Value
@@ -74,7 +74,7 @@ type String string
 
 func (String) isValue() {}
 
-// String converts String value to string
+// String() converts String value to string
 func (v String) String() string { return string(v) }
 
 // Time represents a DateTime Value
@@ -82,7 +82,7 @@ type Time struct{ time.Time }
 
 func (Time) isValue() {}
 
-// Convert Time value to string
+// String() converts Time value to string
 func (v Time) String() string { return v.Time.Format(time.RFC3339) }
 
 // Resolution represents a resolution Value
@@ -93,7 +93,7 @@ type Resolution struct {
 
 func (Resolution) isValue() {}
 
-// String converts Resolution value to string
+// String() converts Resolution value to string
 func (v Resolution) String() string {
 	return fmt.Sprintf("%dx%d%s", v.Xres, v.Yres, v.Units)
 }
@@ -106,7 +106,7 @@ const (
 	UnitsDpcm Units = 4 // Dots per cm
 )
 
-// String converts Units to string
+// String() converts Units to string
 func (u Units) String() string {
 	switch u {
 	case UnitsDpi:
@@ -125,7 +125,7 @@ type Range struct {
 
 func (Range) isValue() {}
 
-// String converts Range value to string
+// String() converts Range value to string
 func (v Range) String() string {
 	return fmt.Sprintf("%d-%d", v.Lower, v.Upper)
 }
@@ -139,7 +139,7 @@ type StringWithLang struct {
 
 func (StringWithLang) isValue() {}
 
-// String converts StringWithLang value to string
+// String() converts StringWithLang value to string
 func (v StringWithLang) String() string { return v.Text + " [" + v.Lang + "]" }
 
 // Binary represents a raw binary Value
@@ -147,7 +147,7 @@ type Binary []byte
 
 func (Binary) isValue() {}
 
-// String converts Range value to string
+// String() converts Range value to string
 func (v Binary) String() string {
 	return fmt.Sprintf("%x", []byte(v))
 }
@@ -157,7 +157,7 @@ type Collection []Attribute
 
 func (Collection) isValue() {}
 
-// String converts Collection to string
+// String() converts Collection to string
 func (v Collection) String() string {
 	var buf bytes.Buffer
 	buf.Write([]byte("{"))

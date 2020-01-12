@@ -67,7 +67,7 @@ const (
 	TagExtension        Tag = 0x7f // Extension point for 32-bit tags
 )
 
-// IsDelimiter returns true for delimiter tags
+// IsDelimiter() returns true for delimiter tags
 func (tag Tag) IsDelimiter() bool {
 	return tag < 0x10
 }

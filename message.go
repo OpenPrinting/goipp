@@ -41,7 +41,7 @@ func (v Version) Minor() uint8 {
 	return uint8(v)
 }
 
-// String converts version to string (i.e., 2.0)
+// String() converts version to string (i.e., 2.0)
 func (v Version) String() string {
 	return fmt.Sprintf("%d.%d", v.Major(), v.Minor())
 }
