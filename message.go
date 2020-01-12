@@ -90,6 +90,15 @@ func NewResponse(v Version, status Status) *Message {
 	}
 }
 
+// Decode the message
+func (m *Message) Decode(in io.Reader) error {
+	md := messageDecoder{
+		in: in,
+	}
+
+	return md.decode(m)
+}
+
 // Print pretty-prints the message. The 'request' parameter affects
 // interpretation of Message.Code: it is interpreted either
 // as Op or as Status
@@ -104,27 +113,7 @@ func (m *Message) Print(out io.Writer, request bool) {
 		fmt.Fprintf(out, "\tSTATUS %s\n", Status(m.Code))
 	}
 
-	groups := []struct {
-		tag   Tag
-		attrs []Attribute
-	}{
-		{TagOperationGroup, m.Operation},
-		{TagJobGroup, m.Job},
-		{TagPrinterGroup, m.Printer},
-		{TagUnsupportedGroup, m.Unsupported},
-		{TagSubscriptionGroup, m.Subscription},
-		{TagEventNotificationGroup, m.EventNotification},
-		{TagResourceGroup, m.Resource},
-		{TagDocumentGroup, m.Document},
-		{TagSystemGroup, m.System},
-		{TagFuture11Group, m.Future11},
-		{TagFuture12Group, m.Future12},
-		{TagFuture13Group, m.Future13},
-		{TagFuture14Group, m.Future14},
-		{TagFuture15Group, m.Future15},
-	}
-
-	for _, grp := range groups {
+	for _, grp := range m.attrGroups() {
 		if grp.attrs != nil {
 			fmt.Fprintf(out, "\n\tGROUP %s\n", grp.tag)
 			for _, attr := range grp.attrs {
@@ -171,11 +160,29 @@ func (m *Message) printIndent(out io.Writer, indent int) {
 	}
 }
 
-// Decode the message
-func (m *Message) Decode(in io.Reader) error {
-	md := messageDecoder{
-		in: in,
+// Get attributes by group. This is a helper function for
+// message encoder and pretty-printer
+func (m *Message) attrGroups() []struct {
+	tag   Tag
+	attrs []Attribute
+} {
+	return []struct {
+		tag   Tag
+		attrs []Attribute
+	}{
+		{TagOperationGroup, m.Operation},
+		{TagJobGroup, m.Job},
+		{TagPrinterGroup, m.Printer},
+		{TagUnsupportedGroup, m.Unsupported},
+		{TagSubscriptionGroup, m.Subscription},
+		{TagEventNotificationGroup, m.EventNotification},
+		{TagResourceGroup, m.Resource},
+		{TagDocumentGroup, m.Document},
+		{TagSystemGroup, m.System},
+		{TagFuture11Group, m.Future11},
+		{TagFuture12Group, m.Future12},
+		{TagFuture13Group, m.Future13},
+		{TagFuture14Group, m.Future14},
+		{TagFuture15Group, m.Future15},
 	}
-
-	return md.decode(m)
 }
