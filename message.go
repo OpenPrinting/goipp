@@ -213,8 +213,18 @@ func (md *messageDecoder) decode(m *Message) error {
 			group = &m.Future15
 
 		default:
-			attr, err = md.decodeAttribute(tag)
+			// Decode attribute
+			if tag == TagMemberName || tag == TagEndCollection {
+				err = fmt.Errorf("Unexpected tag %s", tag)
+			} else {
+				attr, err = md.decodeAttribute(tag)
+			}
 
+			if err == nil && tag == TagBeginCollection {
+				attr.Values[0].V, err = md.decodeCollection()
+			}
+
+			// If everything is OK, save attribute
 			switch {
 			case err != nil:
 			case attr.Name == "":
@@ -237,6 +247,63 @@ func (md *messageDecoder) decode(m *Message) error {
 	}
 
 	return err
+}
+
+// Decode a Collection
+func (md *messageDecoder) decodeCollection() (Collection, error) {
+	collection := make(Collection, 0)
+
+	for {
+		// Decode next TagEndCollection or next TagMemberName
+		tag, err := md.decodeTag()
+		if err != nil {
+			return nil, err
+		}
+
+		if tag != TagEndCollection && tag != TagMemberName {
+			err = fmt.Errorf(
+				"Collection: expected %s or %s, got %s",
+				TagMemberName, TagMemberName, tag)
+			return nil, err
+		}
+
+		attrName, err := md.decodeAttribute(tag)
+		if err != nil {
+			return nil, err
+		}
+
+		if tag == TagEndCollection {
+			return collection, nil
+		}
+
+		// Decode member value
+		tag, err = md.decodeTag()
+		if err != nil {
+			return nil, err
+		}
+
+		if tag.IsDelimiter() ||
+			tag == TagEndCollection || tag == TagMemberName {
+			err = fmt.Errorf("Collection: unexpected %s", tag)
+			return nil, err
+		}
+
+		attr, err := md.decodeAttribute(tag)
+		if err != nil {
+			return nil, err
+		}
+
+		attr.Name = string(attrName.Values[0].V.(String))
+		if err == nil && tag == TagBeginCollection {
+			attr.Values[0].V, err = md.decodeCollection()
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		collection = append(collection, attr)
+	}
 }
 
 // Decode a tag

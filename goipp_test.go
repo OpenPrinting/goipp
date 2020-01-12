@@ -220,7 +220,7 @@ func TestGoipp(*testing.T) {
 
 	data, err := rq.Encode()
 	check(err)
-	log_dump(data)
+	log_dump(test_message)
 
 	var m Message
 	err = m.Decode(bytes.NewBuffer(test_message))
