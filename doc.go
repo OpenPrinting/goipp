@@ -1,10 +1,9 @@
-/* Go IPP - IPP core protocol implementation in pure Go
- *
- * Copyright (C) 2020 and up by Alexander Pevzner (pzz@apevzner.com)
- * See LICENSE for license terms and conditions
- *
- * Package documentation
- */
+// Go IPP - IPP core protocol implementation in pure Go
+//
+// Copyright (C) 2020 and up by Alexander Pevzner (pzz@apevzner.com)
+// See LICENSE for license terms and conditions
+//
+// Package documentation
 
 /*
 	Package goipp implements IPP core protocol, as defined by RFC8010
