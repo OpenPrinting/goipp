@@ -22,5 +22,4 @@
 	in response. So most of operations are common for request and
 	response messages
 */
-
 package goipp
