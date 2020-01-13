@@ -114,12 +114,10 @@ func (m *Message) Print(out io.Writer, request bool) {
 	}
 
 	for _, grp := range m.attrGroups() {
-		if grp.attrs != nil {
-			fmt.Fprintf(out, "\n\tGROUP %s\n", grp.tag)
-			for _, attr := range grp.attrs {
-				m.printAttribute(out, attr, 1)
-				out.Write([]byte("\n"))
-			}
+		fmt.Fprintf(out, "\n\tGROUP %s\n", grp.tag)
+		for _, attr := range grp.attrs {
+			m.printAttribute(out, attr, 1)
+			out.Write([]byte("\n"))
 		}
 	}
 
@@ -160,13 +158,16 @@ func (m *Message) printIndent(out io.Writer, indent int) {
 	}
 }
 
-// Get attributes by group. This is a helper function for
-// message encoder and pretty-printer
+// Get attributes by group. Groups with nil Attributes are skipped,
+// but groups with non-nil are not, even if len(Attributes) == 0
+//
+// This is a helper function for message encoder and pretty-printer
 func (m *Message) attrGroups() []struct {
 	tag   Tag
 	attrs []Attribute
 } {
-	return []struct {
+	// Initialize slice of groups
+	groups := []struct {
 		tag   Tag
 		attrs []Attribute
 	}{
@@ -185,4 +186,15 @@ func (m *Message) attrGroups() []struct {
 		{TagFuture14Group, m.Future14},
 		{TagFuture15Group, m.Future15},
 	}
+
+	// Skip all empty groups
+	out := 0
+	for in := 0; in < len(groups); in++ {
+		if groups[in].attrs != nil {
+			groups[out] = groups[in]
+			out++
+		}
+	}
+
+	return groups[:out]
 }
