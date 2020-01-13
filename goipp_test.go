@@ -11,7 +11,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
+	"time"
 )
 
 // The good message - 1
@@ -307,6 +309,150 @@ func testDecode(t *testing.T, data []byte, mustFail bool) {
 	err = m2.Decode(bytes.NewBuffer(buf.Bytes()))
 	check(t, err, false)
 	m2.Print(os.Stdout, true)
+}
+
+// Check that value type is as specified
+func assertValueType(t *testing.T, val Value, typ Type) {
+	if val.Type() != typ {
+		t.Errorf("%s: type is %s, must be %s", reflect.TypeOf(val).Name(), val.Type(), typ)
+	}
+}
+
+// Check that err == nil
+func assertNoError(t *testing.T, err error) {
+	if err != nil {
+		t.Errorf("%s", err)
+	}
+}
+
+func assertDataSize(t *testing.T, data []byte, size int) {
+	if len(data) != size {
+		t.Errorf("data size must be %d, present %d", size, len(data))
+	}
+}
+
+// Check that encode() works without error and returns expected size
+func assertEncodeSize(t *testing.T, encode func() ([]byte, error), size int) {
+	data, err := encode()
+	assertNoError(t, err)
+	assertDataSize(t, data, size)
+}
+
+// Check that decode() works without error and returns expected value
+func assertDecode(t *testing.T, data []byte, expected Value) {
+	val, err := expected.decode(data)
+	assertNoError(t, err)
+
+	if !ValueEqual(val, expected) {
+		t.Errorf("decode: expected %s, present %s", val, expected)
+	}
+}
+
+// Check that decode returns error
+func assertDecodeErr(t *testing.T, data []byte, val Value) {
+	_, err := val.decode(data)
+	if err == nil {
+		t.Errorf("decode: expected error")
+	}
+}
+
+// Test Void Value
+func TestVoidValue(t *testing.T) {
+	var v Void
+
+	assertValueType(t, v, TypeVoid)
+	assertEncodeSize(t, v.encode, 0)
+
+	assertDecode(t, []byte{}, Void{})
+	assertDecode(t, []byte{1, 2, 3, 4}, Void{})
+}
+
+// Test Integer Value
+func TestIntegerValue(t *testing.T) {
+	var v Integer
+
+	assertValueType(t, v, TypeInteger)
+	assertEncodeSize(t, v.encode, 4)
+
+	assertDecode(t, []byte{1, 2, 3, 4}, Integer(0x01020304))
+	assertDecodeErr(t, []byte{1, 2, 3}, Integer(0))
+}
+
+// Test Boolean Value
+func TestBooleanValue(t *testing.T) {
+	var v Boolean
+
+	assertValueType(t, v, TypeBoolean)
+	assertEncodeSize(t, v.encode, 1)
+
+	assertDecode(t, []byte{0}, Boolean(false))
+	assertDecode(t, []byte{1}, Boolean(true))
+	assertDecodeErr(t, []byte{1, 2, 3}, Integer(0))
+}
+
+// Test String Value
+func TestStringValue(t *testing.T) {
+	var v String
+
+	assertValueType(t, v, TypeString)
+	assertEncodeSize(t, v.encode, 0)
+
+	v = "12345"
+	assertEncodeSize(t, v.encode, 5)
+
+	assertDecode(t, []byte{}, String(""))
+	assertDecode(t, []byte("hello"), String("hello"))
+}
+
+// Test Time Value
+func TestDateTimeValue(t *testing.T) {
+	var v Time
+
+	assertValueType(t, v, TypeDateTime)
+	assertEncodeSize(t, v.encode, 11)
+
+	tm := time.Date(2020, 1, 13, 15, 35, 12, 300000000, time.UTC)
+
+	v = Time{tm}
+	data, _ := v.encode()
+
+	assertDecode(t, data, Time{tm})
+	assertDecodeErr(t, []byte{1, 2, 3}, Time{})
+}
+
+// Test Resolution value
+func TestResolutionValue(t *testing.T) {
+	v := Resolution{100, 100, UnitsDpi}
+
+	assertValueType(t, v, TypeResolution)
+	assertEncodeSize(t, v.encode, 9)
+
+	data, _ := v.encode()
+	assertDecode(t, data, v)
+	assertDecodeErr(t, []byte{1, 2, 3}, Resolution{})
+}
+
+// Test Range value
+func TestRangeValue(t *testing.T) {
+	v := Range{100, 200}
+
+	assertValueType(t, v, TypeRange)
+	assertEncodeSize(t, v.encode, 8)
+
+	data, _ := v.encode()
+	assertDecode(t, data, v)
+	assertDecodeErr(t, []byte{1, 2, 3}, Range{})
+}
+
+// Test Binary value
+func TestBinaryValue(t *testing.T) {
+	v := Binary([]byte("12345"))
+
+	assertValueType(t, v, TypeBinary)
+	assertEncodeSize(t, v.encode, 5)
+
+	data, _ := v.encode()
+	assertDecode(t, data, v)
 }
 
 func TestGoipp(t *testing.T) {
