@@ -73,20 +73,22 @@ type Message struct {
 //
 // Use DefaultVersion as a first argument, if you don't
 // have any specific needs
-func NewRequest(v Version, op Op) *Message {
+func NewRequest(v Version, op Op, id uint32) *Message {
 	return &Message{
-		Version: v,
-		Code:    Code(op),
+		Version:   v,
+		Code:      Code(op),
+		RequestID: id,
 	}
 }
 
 // NewResponse creates a new response message
 //
 // Use DefaultVersion as a first argument, if you don't
-func NewResponse(v Version, status Status) *Message {
+func NewResponse(v Version, status Status, id uint32) *Message {
 	return &Message{
-		Version: v,
-		Code:    Code(status),
+		Version:   v,
+		Code:      Code(status),
+		RequestID: id,
 	}
 }
 
