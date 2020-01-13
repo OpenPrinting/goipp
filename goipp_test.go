@@ -8,9 +8,6 @@ package goipp
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
-	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -265,25 +262,6 @@ var bad_message_1 = []byte{
 	0x00, 0x00, // No value
 
 	uint8(TagEnd),
-}
-
-func check(t *testing.T, err error, mustFail bool) {
-	if err != nil {
-		fmt.Printf("%s\n", err)
-	}
-
-	if mustFail {
-		if err != nil {
-			err = nil
-		} else {
-			err = errors.New("Non-nil error expected")
-		}
-	}
-
-	if err != nil {
-		fmt.Printf("%s\n", err)
-		os.Exit(1)
-	}
 }
 
 // Check that err == nil
