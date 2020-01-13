@@ -108,7 +108,7 @@ func (m *Message) Encode(out io.Writer) error {
 }
 
 // Encode message to byte slice
-func (m *Message) EncodeBytes(out io.Writer) ([]byte, error) {
+func (m *Message) EncodeBytes() ([]byte, error) {
 	var buf bytes.Buffer
 
 	err := m.Encode(&buf)
