@@ -14,18 +14,18 @@ import (
 	"time"
 )
 
-// Attribute represents a single attribute
-type Attribute struct {
-	Name   string // Attribute name
-	Values Values // Slice of values
-}
-
 // Attributes represents a slice of attributes
 type Attributes []Attribute
 
 // Add Attribute to Attributes
 func (attrs *Attributes) Add(attr Attribute) {
 	*attrs = append(*attrs, attr)
+}
+
+// Attribute represents a single attribute
+type Attribute struct {
+	Name   string // Attribute name
+	Values Values // Slice of values
 }
 
 // Make Attribute with single value
