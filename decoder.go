@@ -304,13 +304,14 @@ func (md *messageDecoder) read(data []byte) error {
 
 	for len(data) > 0 {
 		n, err := md.in.Read(data)
-		if err != nil {
+		if n > 0 {
+			md.cnt += n
+			data = data[n:]
+		} else if err != nil {
 			md.off = md.cnt
 			return err
 		}
 
-		md.cnt += n
-		data = data[n:]
 	}
 
 	return nil
