@@ -37,35 +37,42 @@ func MakeAttribute(name string, tag Tag, value Value) Attribute {
 
 // Unpack attribute value
 func (a *Attribute) unpack(tag Tag, value []byte) error {
-	switch tag {
-	case TagInteger, TagEnum:
+	switch tag.Type() {
+	case TypeVoid:
+		return a.unpackVoid(tag, value)
+
+	case TypeInteger:
 		return a.unpackInteger(tag, value)
 
-	case TagBoolean:
+	case TypeBoolean:
 		return a.unpackBoolean(tag, value)
 
-	case TagUnsupportedValue, TagDefault, TagUnknown, TagNotSettable,
-		TagDeleteAttr, TagAdminDefine:
-		// These tags not expected to have value
-		return a.unpackBinary(tag, value)
-
-	case TagText, TagName, TagReservedString, TagKeyword, TagURI, TagURIScheme,
-		TagCharset, TagLanguage, TagMimeType, TagMemberName:
+	case TypeString:
 		return a.unpackString(tag, value)
 
-	case TagDate:
+	case TypeDateTime:
 		return a.unpackDate(tag, value)
 
-	case TagResolution:
+	case TypeResolution:
 		return a.unpackResolution(tag, value)
 
-	case TagRange:
+	case TypeRange:
 		return a.unpackRange(tag, value)
 
-	default:
+	case TypeTextWithLang:
+		return a.unpackTextWithLang(tag, value)
+
+	case TypeBinary:
 		return a.unpackBinary(tag, value)
 	}
 
+	panic(fmt.Sprintf("(Attribute) uppack(): tag=%s type=%s", tag, tag.Type()))
+}
+
+// Unpack Void value
+func (a *Attribute) unpackVoid(tag Tag, value []byte) error {
+	a.Values.Add(tag, Void{})
+	return nil
 }
 
 // Unpack Integer value
@@ -189,8 +196,8 @@ func (a *Attribute) unpackRange(tag Tag, value []byte) error {
 	return nil
 }
 
-// Unpack StringWithLang value
-func (a *Attribute) unpackStringWithLang(tag Tag, value []byte) error {
+// Unpack TextWithLang value
+func (a *Attribute) unpackTextWithLang(tag Tag, value []byte) error {
 	var langLen, textLen int
 	var lang, text string
 
@@ -232,7 +239,7 @@ func (a *Attribute) unpackStringWithLang(tag Tag, value []byte) error {
 	}
 
 	// Add a value
-	a.Values.Add(tag, StringWithLang{Lang: lang, Text: text})
+	a.Values.Add(tag, TextWithLang{Lang: lang, Text: text})
 	return nil
 
 ERROR:

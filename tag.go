@@ -47,10 +47,10 @@ const (
 	TagBoolean          Tag = 0x22 // Boolean value
 	TagEnum             Tag = 0x23 // Enumeration value
 	TagString           Tag = 0x30 // Octet string value
-	TagDate             Tag = 0x31 // Date/time value
+	TagDateTime         Tag = 0x31 // Date/time value
 	TagResolution       Tag = 0x32 // Resolution value
 	TagRange            Tag = 0x33 // Range value
-	TagBeginCollection  Tag = 0x34 // Beginning of collection value @exclude all@
+	TagBeginCollection  Tag = 0x34 // Beginning of collection value
 	TagTextLang         Tag = 0x35 // Text-with-language value
 	TagNameLang         Tag = 0x36 // Name-with-language value
 	TagEndCollection    Tag = 0x37 // End of collection value
@@ -70,6 +70,48 @@ const (
 // IsDelimiter() returns true for delimiter tags
 func (tag Tag) IsDelimiter() bool {
 	return tag < 0x10
+}
+
+// Type returns Type of Value that corresponds to the tag
+func (tag Tag) Type() Type {
+	if tag.IsDelimiter() {
+		return TypeInvalid
+	}
+
+	switch tag {
+	case TagInteger, TagEnum:
+		return TypeInteger
+
+	case TagBoolean:
+		return TypeBoolean
+
+	case TagUnsupportedValue, TagDefault, TagUnknown, TagNotSettable,
+		TagDeleteAttr, TagAdminDefine:
+		// These tags not expected to have value
+		return TypeVoid
+
+	case TagText, TagName, TagReservedString, TagKeyword, TagURI, TagURIScheme,
+		TagCharset, TagLanguage, TagMimeType, TagMemberName:
+		return TypeString
+
+	case TagDateTime:
+		return TypeDateTime
+
+	case TagResolution:
+		return TypeResolution
+
+	case TagRange:
+		return TypeRange
+
+	case TagTextLang, TagNameLang:
+		return TypeTextWithLang
+
+	case TagBeginCollection, TagEndCollection:
+		return TypeVoid
+
+	default:
+		return TypeBinary
+	}
 }
 
 // String() returns a tag name, as defined by RFC 8010
@@ -121,7 +163,7 @@ func (tag Tag) String() string {
 		return "enum"
 	case TagString:
 		return "octetString"
-	case TagDate:
+	case TagDateTime:
 		return "dateTime"
 	case TagResolution:
 		return "resolution"

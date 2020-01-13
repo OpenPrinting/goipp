@@ -50,8 +50,20 @@ func (values Values) String() string {
 // Value represents an attribute value
 type Value interface {
 	String() string
+	Type() Type
 	isValue()
 }
+
+// Void represents "no value"
+type Void struct{}
+
+func (Void) isValue() {}
+
+// String() converts Void Value to string
+func (Void) String() string { return "" }
+
+// Type() returns type of Value
+func (Void) Type() Type { return TypeVoid }
 
 // Integer represents an Integer Value
 type Integer uint32
@@ -61,6 +73,9 @@ func (Integer) isValue() {}
 // String() converts Integer value to string
 func (v Integer) String() string { return fmt.Sprintf("%d", uint32(v)) }
 
+// Type() returns type of Value
+func (Integer) Type() Type { return TypeInteger }
+
 // Boolean represents a boolean Value
 type Boolean bool
 
@@ -68,6 +83,9 @@ func (Boolean) isValue() {}
 
 // String() converts Boolean value to string
 func (v Boolean) String() string { return fmt.Sprintf("%t", bool(v)) }
+
+// Type() returns type of Value
+func (Boolean) Type() Type { return TypeBoolean }
 
 // String represents a string Value
 type String string
@@ -77,6 +95,9 @@ func (String) isValue() {}
 // String() converts String value to string
 func (v String) String() string { return string(v) }
 
+// Type() returns type of Value
+func (String) Type() Type { return TypeString }
+
 // Time represents a DateTime Value
 type Time struct{ time.Time }
 
@@ -84,6 +105,9 @@ func (Time) isValue() {}
 
 // String() converts Time value to string
 func (v Time) String() string { return v.Time.Format(time.RFC3339) }
+
+// Type() returns type of Value
+func (Time) Type() Type { return TypeDateTime }
 
 // Resolution represents a resolution Value
 type Resolution struct {
@@ -97,6 +121,9 @@ func (Resolution) isValue() {}
 func (v Resolution) String() string {
 	return fmt.Sprintf("%dx%d%s", v.Xres, v.Yres, v.Units)
 }
+
+// Type() returns type of Value
+func (Resolution) Type() Type { return TypeResolution }
 
 // Units represents resolution units
 type Units uint8
@@ -130,17 +157,23 @@ func (v Range) String() string {
 	return fmt.Sprintf("%d-%d", v.Lower, v.Upper)
 }
 
-// StringWithLang represents a combination of two strings:
+// Type() returns type of Value
+func (Range) Type() Type { return TypeRange }
+
+// TextWithLang represents a combination of two strings:
 // one is a name of natural language and second is a text
 // on this language
-type StringWithLang struct {
+type TextWithLang struct {
 	Lang, Text string // Language and text
 }
 
-func (StringWithLang) isValue() {}
+func (TextWithLang) isValue() {}
 
-// String() converts StringWithLang value to string
-func (v StringWithLang) String() string { return v.Text + " [" + v.Lang + "]" }
+// String() converts TextWithLang value to string
+func (v TextWithLang) String() string { return v.Text + " [" + v.Lang + "]" }
+
+// Type() returns type of Value
+func (TextWithLang) Type() Type { return TypeTextWithLang }
 
 // Binary represents a raw binary Value
 type Binary []byte
@@ -151,6 +184,9 @@ func (Binary) isValue() {}
 func (v Binary) String() string {
 	return fmt.Sprintf("%x", []byte(v))
 }
+
+// Type() returns type of Value
+func (Binary) Type() Type { return TypeBinary }
 
 // Collection represents a collection of attributes
 type Collection []Attribute
@@ -171,3 +207,6 @@ func (v Collection) String() string {
 
 	return buf.String()
 }
+
+// Type() returns type of Value
+func (Collection) Type() Type { return TypeCollection }
