@@ -294,7 +294,7 @@ func (Resolution) decode(data []byte) (Value, error) {
 	return Resolution{
 		Xres:  int(binary.BigEndian.Uint32(data[0:4])),
 		Yres:  int(binary.BigEndian.Uint32(data[4:8])),
-		Units: Units(data[9]),
+		Units: Units(data[8]),
 	}, nil
 
 }
