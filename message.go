@@ -9,6 +9,7 @@
 package goipp
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 )
@@ -97,7 +98,7 @@ func (m *Message) Reset() {
 	*m = Message{}
 }
 
-// Encode the message
+// Encode message
 func (m *Message) Encode(out io.Writer) error {
 	me := messageEncoder{
 		out: out,
@@ -106,13 +107,27 @@ func (m *Message) Encode(out io.Writer) error {
 	return me.encode(m)
 }
 
-// Decode the message
+// Encode message to byte slice
+func (m *Message) EncodeBytes(out io.Writer) ([]byte, error) {
+	var buf bytes.Buffer
+
+	err := m.Encode(&buf)
+	return buf.Bytes(), err
+}
+
+// Decode message
 func (m *Message) Decode(in io.Reader) error {
 	md := messageDecoder{
 		in: in,
 	}
 
+	m.Reset()
 	return md.decode(m)
+}
+
+// Decode message from byte slice
+func (m *Message) DecodeBytes(data []byte) error {
+	return m.Decode(bytes.NewBuffer(data))
 }
 
 // Print pretty-prints the message. The 'request' parameter affects
