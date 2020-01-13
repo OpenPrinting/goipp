@@ -106,7 +106,10 @@ func (tag Tag) Type() Type {
 	case TagTextLang, TagNameLang:
 		return TypeTextWithLang
 
-	case TagBeginCollection, TagEndCollection:
+	case TagBeginCollection:
+		return TypeCollection
+
+	case TagEndCollection:
 		return TypeVoid
 
 	default:

@@ -42,13 +42,24 @@ func (me *messageEncoder) encode(m *Message) error {
 
 	// Encode attributes
 	for _, grp := range m.attrGroups() {
-		for _, attr := range grp.attrs {
-			err = me.encodeAttr(attr)
+		err = me.encodeTag(grp.tag)
+		if err == nil {
+			for _, attr := range grp.attrs {
+				if attr.Name == "" {
+					err = errors.New("Attribute without name")
+				} else {
+					err = me.encodeAttr(attr)
+				}
+			}
 		}
 
 		if err != nil {
 			break
 		}
+	}
+
+	if err == nil {
+		err = me.encodeTag(TagEnd)
 	}
 
 	return err
@@ -65,17 +76,13 @@ func (me *messageEncoder) encodeAttr(attr Attribute) error {
 	//
 	// And each additional value comes as attribute
 	// without name
-	if attr.Name == "" {
-		return errors.New("Attribute without name")
-	}
-
 	if len(attr.Values) == 0 {
 		return errors.New("Attribute without value")
 	}
 
 	name := attr.Name
 	for _, val := range attr.Values {
-		err := me.encodeU8(uint8(val.T))
+		err := me.encodeTag(val.T)
 		if err != nil {
 			return err
 		}
@@ -111,6 +118,11 @@ func (me *messageEncoder) encodeU32(v uint32) error {
 	return me.write([]byte{byte(v >> 24), byte(v >> 16), byte(v >> 8), byte(v)})
 }
 
+// Encode Tag
+func (me *messageEncoder) encodeTag(tag Tag) error {
+	return me.encodeU8(byte(tag))
+}
+
 // Encode Attribute name
 func (me *messageEncoder) encodeName(name string) error {
 	if len(name) > math.MaxUint16 {
@@ -141,11 +153,6 @@ func (me *messageEncoder) encodeValue(tag Tag, v Value) error {
 		}
 	}
 
-	// Handle collection
-	if collection, ok := v.(Collection); ok {
-		return me.encodeCollection(tag, collection)
-	}
-
 	// Encode the value
 	data, err := v.encode()
 	if err != nil {
@@ -161,6 +168,11 @@ func (me *messageEncoder) encodeValue(tag Tag, v Value) error {
 		err = me.write(data)
 	}
 
+	// Handle collection
+	if collection, ok := v.(Collection); ok {
+		return me.encodeCollection(tag, collection)
+	}
+
 	return err
 }
 
@@ -171,7 +183,7 @@ func (me *messageEncoder) encodeCollection(tag Tag, collection Collection) error
 			return errors.New("Collection member without name")
 		}
 
-		attrName := MakeAttribute(attr.Name, TagMemberName, String(attr.Name))
+		attrName := MakeAttribute("", TagMemberName, String(attr.Name))
 
 		err := me.encodeAttr(attrName)
 		if err == nil {

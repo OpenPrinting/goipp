@@ -346,8 +346,9 @@ func (v Collection) String() string {
 // Type() returns type of Value
 func (Collection) Type() Type { return TypeCollection }
 
-// Encode TextWithLang Value into wire format
+// Encode Collection Value into wire format
 func (v Collection) encode() ([]byte, error) {
-	// Note, collections encoding handled the different way
-	panic("internal error")
+	// Note, TagBeginCollection attribute contains
+	// no data, collection itself handled the different way
+	return []byte{}, nil
 }

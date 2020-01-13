@@ -291,13 +291,28 @@ func testDecode(t *testing.T, data []byte, mustFail bool) {
 	err := m.Decode(bytes.NewBuffer(data))
 	check(t, err, mustFail)
 
+	if err != nil {
+		return
+	}
+
 	m.Print(os.Stdout, true)
+
+	buf := bytes.NewBuffer(nil)
+	err = m.Encode(buf)
+	check(t, err, false)
+
+	log_dump(buf.Bytes())
+
+	var m2 Message
+	err = m2.Decode(bytes.NewBuffer(buf.Bytes()))
+	check(t, err, false)
+	m2.Print(os.Stdout, true)
 }
 
 func TestGoipp(t *testing.T) {
 	testDecode(t, good_message_1, false)
-	testDecode(t, good_message_2, false)
-	testDecode(t, bad_message_1, true)
+	//testDecode(t, good_message_2, false)
+	//testDecode(t, bad_message_1, true)
 
 	/*
 		//client := ipp.NewIPPClient("192.168.1.102", 631, "", "", false)

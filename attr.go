@@ -38,7 +38,7 @@ func MakeAttribute(name string, tag Tag, value Value) Attribute {
 // Unpack attribute value
 func (a *Attribute) unpack(tag Tag, value []byte) error {
 	switch tag.Type() {
-	case TypeVoid:
+	case TypeVoid, TypeCollection:
 		return a.unpackVoid(tag, value)
 
 	case TypeInteger:
