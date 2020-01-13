@@ -10,7 +10,9 @@ package goipp
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -52,6 +54,7 @@ type Value interface {
 	String() string
 	Type() Type
 	isValue()
+	encode() ([]byte, error)
 }
 
 // Void represents "no value"
@@ -65,6 +68,11 @@ func (Void) String() string { return "" }
 // Type() returns type of Value
 func (Void) Type() Type { return TypeVoid }
 
+// Encode Void Value into wire format
+func (v Void) encode() ([]byte, error) {
+	return []byte{}, nil
+}
+
 // Integer represents an Integer Value
 type Integer uint32
 
@@ -75,6 +83,11 @@ func (v Integer) String() string { return fmt.Sprintf("%d", uint32(v)) }
 
 // Type() returns type of Value
 func (Integer) Type() Type { return TypeInteger }
+
+// Encode Integer Value into wire format
+func (v Integer) encode() ([]byte, error) {
+	return []byte{byte(v >> 24), byte(v >> 16), byte(v >> 8), byte(v)}, nil
+}
 
 // Boolean represents a boolean Value
 type Boolean bool
@@ -87,6 +100,14 @@ func (v Boolean) String() string { return fmt.Sprintf("%t", bool(v)) }
 // Type() returns type of Value
 func (Boolean) Type() Type { return TypeBoolean }
 
+// Encode Boolean Value into wire format
+func (v Boolean) encode() ([]byte, error) {
+	if v {
+		return []byte{1}, nil
+	}
+	return []byte{0}, nil
+}
+
 // String represents a string Value
 type String string
 
@@ -98,6 +119,11 @@ func (v String) String() string { return string(v) }
 // Type() returns type of Value
 func (String) Type() Type { return TypeString }
 
+// Encode String Value into wire format
+func (v String) encode() ([]byte, error) {
+	return []byte(v), nil
+}
+
 // Time represents a DateTime Value
 type Time struct{ time.Time }
 
@@ -108,6 +134,50 @@ func (v Time) String() string { return v.Time.Format(time.RFC3339) }
 
 // Type() returns type of Value
 func (Time) Type() Type { return TypeDateTime }
+
+// Encode Time Value into wire format
+func (v Time) encode() ([]byte, error) {
+	//    From RFC2579:
+	//
+	//	field  octets  contents                  range
+	//	-----  ------  --------                  -----
+	//        1      1-2   year*                     0..65536
+	//        2       3    month                     1..12
+	//        3       4    day                       1..31
+	//        4       5    hour                      0..23
+	//        5       6    minutes                   0..59
+	//        6       7    seconds                   0..60
+	//                     (use 60 for leap-second)
+	//        7       8    deci-seconds              0..9
+	//        8       9    direction from UTC        '+' / '-'
+	//        9      10    hours from UTC*           0..13
+	//       10      11    minutes from UTC          0..59
+	//
+	//      * Notes:
+	//      - the value of year is in network-byte order
+	//      - daylight saving time in New Zealand is +13
+
+	year := v.Year()
+	_, zone := v.Zone()
+	dir := byte('+')
+	if zone < 0 {
+		zone = -zone
+		dir = '-'
+	}
+
+	return []byte{
+		byte(year >> 8), byte(year),
+		byte(v.Month()),
+		byte(v.Day()),
+		byte(v.Hour()),
+		byte(v.Minute()),
+		byte(v.Second()),
+		byte(v.Nanosecond() / 100000000),
+		dir,
+		byte(zone / 3600),
+		byte((zone / 60) % 60),
+	}, nil
+}
 
 // Resolution represents a resolution Value
 type Resolution struct {
@@ -124,6 +194,22 @@ func (v Resolution) String() string {
 
 // Type() returns type of Value
 func (Resolution) Type() Type { return TypeResolution }
+
+// Encode Resolution Value into wire format
+func (v Resolution) encode() ([]byte, error) {
+	// Wire format
+	//    4 bytes: Xres
+	//    4 bytes: Yres
+	//    1 byte:  Units
+
+	x, y := v.Xres, v.Yres
+
+	return []byte{
+		byte(x >> 24), byte(x >> 16), byte(x >> 8), byte(x),
+		byte(y >> 24), byte(y >> 16), byte(y >> 8), byte(y),
+		byte(v.Units),
+	}, nil
+}
 
 // Units represents resolution units
 type Units uint8
@@ -160,6 +246,20 @@ func (v Range) String() string {
 // Type() returns type of Value
 func (Range) Type() Type { return TypeRange }
 
+// Encode Range Value into wire format
+func (v Range) encode() ([]byte, error) {
+	// Wire format
+	//    4 bytes: Lower
+	//    4 bytes: Upper
+
+	l, u := v.Lower, v.Upper
+
+	return []byte{
+		byte(l >> 24), byte(l >> 16), byte(l >> 8), byte(l),
+		byte(u >> 24), byte(u >> 16), byte(u >> 8), byte(u),
+	}, nil
+}
+
 // TextWithLang represents a combination of two strings:
 // one is a name of natural language and second is a text
 // on this language
@@ -175,6 +275,36 @@ func (v TextWithLang) String() string { return v.Text + " [" + v.Lang + "]" }
 // Type() returns type of Value
 func (TextWithLang) Type() Type { return TypeTextWithLang }
 
+// Encode TextWithLang Value into wire format
+func (v TextWithLang) encode() ([]byte, error) {
+	// Wire format
+	//    2 bytes:  len(Lang)
+	//    variable: Lang
+	//    2 bytes:  len(Text)
+	//    variable: Text
+
+	lang := []byte(v.Lang)
+	text := []byte(v.Text)
+
+	if len(lang) > math.MaxUint16 {
+		return nil, fmt.Errorf("Lang exceeds %d bytes", math.MaxUint16)
+	}
+
+	if len(text) > math.MaxUint16 {
+		return nil, fmt.Errorf("Text exceeds %d bytes", math.MaxUint16)
+	}
+
+	data := make([]byte, 2+2+len(lang)+len(text))
+	binary.BigEndian.PutUint16(data, uint16(len(lang)))
+	copy(data[2:], []byte(lang))
+
+	data2 := data[2+len(lang):]
+	binary.BigEndian.PutUint16(data2, uint16(len(text)))
+	copy(data2[2:], []byte(text))
+
+	return data, nil
+}
+
 // Binary represents a raw binary Value
 type Binary []byte
 
@@ -187,6 +317,11 @@ func (v Binary) String() string {
 
 // Type() returns type of Value
 func (Binary) Type() Type { return TypeBinary }
+
+// Encode TextWithLang Value into wire format
+func (v Binary) encode() ([]byte, error) {
+	return []byte(v), nil
+}
 
 // Collection represents a collection of attributes
 type Collection []Attribute
@@ -210,3 +345,9 @@ func (v Collection) String() string {
 
 // Type() returns type of Value
 func (Collection) Type() Type { return TypeCollection }
+
+// Encode TextWithLang Value into wire format
+func (v Collection) encode() ([]byte, error) {
+	// Note, collections encoding handled the different way
+	panic("internal error")
+}

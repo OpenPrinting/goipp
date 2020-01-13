@@ -90,6 +90,15 @@ func NewResponse(v Version, status Status) *Message {
 	}
 }
 
+// Encode the message
+func (m *Message) Encode(out io.Writer) error {
+	me := messageEncoder{
+		out: out,
+	}
+
+	return me.encode(m)
+}
+
 // Decode the message
 func (m *Message) Decode(in io.Reader) error {
 	md := messageDecoder{
