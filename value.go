@@ -11,6 +11,7 @@ package goipp
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -57,6 +58,12 @@ type Value interface {
 	encode() ([]byte, error)
 }
 
+// valueDecoder adds decode() method to Value
+type valueDecoder interface {
+	Value
+	decode([]byte) error
+}
+
 // Void represents "no value"
 type Void struct{}
 
@@ -73,6 +80,11 @@ func (v Void) encode() ([]byte, error) {
 	return []byte{}, nil
 }
 
+// Decode Void Value from wire format
+func (Void) decode([]byte) error {
+	return nil
+}
+
 // Integer represents an Integer Value
 type Integer uint32
 
@@ -87,6 +99,16 @@ func (Integer) Type() Type { return TypeInteger }
 // Encode Integer Value into wire format
 func (v Integer) encode() ([]byte, error) {
 	return []byte{byte(v >> 24), byte(v >> 16), byte(v >> 8), byte(v)}, nil
+}
+
+// Decode Integer Value from wire format
+func (v *Integer) decode(data []byte) error {
+	if len(data) != 4 {
+		return errors.New("value must be 4 bytes")
+	}
+
+	*v = Integer(binary.BigEndian.Uint32(data))
+	return nil
 }
 
 // Boolean represents a boolean Value
@@ -108,6 +130,16 @@ func (v Boolean) encode() ([]byte, error) {
 	return []byte{0}, nil
 }
 
+// Decode Boolean Value from wire format
+func (v *Boolean) decode(data []byte) error {
+	if len(data) != 1 {
+		return errors.New("value must be 1 byte")
+	}
+
+	*v = Boolean(data[0] != 0)
+	return nil
+}
+
 // String represents a string Value
 type String string
 
@@ -124,6 +156,12 @@ func (v String) encode() ([]byte, error) {
 	return []byte(v), nil
 }
 
+// Decode String Value from wire format
+func (v *String) decode(data []byte) error {
+	*v = String(data)
+	return nil
+}
+
 // Time represents a DateTime Value
 type Time struct{ time.Time }
 
@@ -137,25 +175,25 @@ func (Time) Type() Type { return TypeDateTime }
 
 // Encode Time Value into wire format
 func (v Time) encode() ([]byte, error) {
-	//    From RFC2579:
+	// From RFC2579:
 	//
-	//	field  octets  contents                  range
-	//	-----  ------  --------                  -----
-	//        1      1-2   year*                     0..65536
-	//        2       3    month                     1..12
-	//        3       4    day                       1..31
-	//        4       5    hour                      0..23
-	//        5       6    minutes                   0..59
-	//        6       7    seconds                   0..60
-	//                     (use 60 for leap-second)
-	//        7       8    deci-seconds              0..9
-	//        8       9    direction from UTC        '+' / '-'
-	//        9      10    hours from UTC*           0..13
-	//       10      11    minutes from UTC          0..59
+	//     field  octets  contents                  range
+	//     -----  ------  --------                  -----
+	//       1      1-2   year*                     0..65536
+	//       2       3    month                     1..12
+	//       3       4    day                       1..31
+	//       4       5    hour                      0..23
+	//       5       6    minutes                   0..59
+	//       6       7    seconds                   0..60
+	//                    (use 60 for leap-second)
+	//       7       8    deci-seconds              0..9
+	//       8       9    direction from UTC        '+' / '-'
+	//       9      10    hours from UTC*           0..13
+	//      10      11    minutes from UTC          0..59
 	//
-	//      * Notes:
-	//      - the value of year is in network-byte order
-	//      - daylight saving time in New Zealand is +13
+	//     * Notes:
+	//     - the value of year is in network-byte order
+	//     - daylight saving time in New Zealand is +13
 
 	year := v.Year()
 	_, zone := v.Zone()
@@ -177,6 +215,51 @@ func (v Time) encode() ([]byte, error) {
 		byte(zone / 3600),
 		byte((zone / 60) % 60),
 	}, nil
+}
+
+// Decode Time Value from wire format
+func (v *Time) decode(data []byte) error {
+	// Check size
+	if len(data) != 9 && len(data) != 11 {
+		return errors.New("value must be 9 or 11 bytes")
+	}
+
+	// Decode time zone
+	var l *time.Location
+	switch {
+	case len(data) == 9:
+		l = time.UTC
+	case data[8] == '+', data[8] == '-':
+		name := fmt.Sprintf("UTC%c%d", data[8], data[9])
+		if data[10] != 0 {
+			name += fmt.Sprintf(":%d", data[10])
+		}
+
+		off := 3600*int(data[9]) + 60*int(data[10])
+		if data[8] == '-' {
+			off = -off
+		}
+
+		l = time.FixedZone(name, off)
+
+	default:
+		return errors.New("invalid data format")
+	}
+
+	// Decode time
+	t := time.Date(
+		int(binary.BigEndian.Uint16(data[0:2])), // year
+		time.Month(data[2]),                     // month
+		int(data[3]),                            // day
+		int(data[4]),                            // hour
+		int(data[5]),                            // min
+		int(data[6]),                            // sec
+		int(data[6])*100000000,                  // nsec
+		l,                                       // time zone
+	)
+
+	*v = Time{t}
+	return nil
 }
 
 // Resolution represents a resolution Value
@@ -209,6 +292,22 @@ func (v Resolution) encode() ([]byte, error) {
 		byte(y >> 24), byte(y >> 16), byte(y >> 8), byte(y),
 		byte(v.Units),
 	}, nil
+}
+
+// Decode Resolution Value from wire format
+func (v *Resolution) decode(data []byte) error {
+	if len(data) != 9 {
+		return errors.New("value must be 9 bytes")
+	}
+
+	*v = Resolution{
+		Xres:  int(binary.BigEndian.Uint32(data[0:4])),
+		Yres:  int(binary.BigEndian.Uint32(data[4:8])),
+		Units: Units(data[9]),
+	}
+
+	return nil
+
 }
 
 // Units represents resolution units
@@ -260,6 +359,20 @@ func (v Range) encode() ([]byte, error) {
 	}, nil
 }
 
+// Decode Range Value from wire format
+func (v *Range) decode(data []byte) error {
+	if len(data) != 8 {
+		return errors.New("value must be 9 bytes")
+	}
+
+	*v = Range{
+		Lower: int(binary.BigEndian.Uint32(data[0:4])),
+		Upper: int(binary.BigEndian.Uint32(data[4:8])),
+	}
+
+	return nil
+}
+
 // TextWithLang represents a combination of two strings:
 // one is a name of natural language and second is a text
 // on this language
@@ -305,6 +418,56 @@ func (v TextWithLang) encode() ([]byte, error) {
 	return data, nil
 }
 
+// Decode TextWithLang Value from wire format
+func (v *TextWithLang) decode(data []byte) error {
+	var langLen, textLen int
+	var lang, text string
+
+	// Unpack language length
+	if len(data) < 2 {
+		goto ERROR
+	}
+
+	langLen = int(binary.BigEndian.Uint16(data[0:2]))
+	data = data[2:]
+
+	// Unpack language value
+	if len(data) < langLen {
+		goto ERROR
+	}
+
+	lang = string(data[:langLen])
+	data = data[langLen:]
+
+	// Unpack text length
+	if len(data) < 2 {
+		goto ERROR
+	}
+
+	textLen = int(binary.BigEndian.Uint16(data[0:2]))
+	data = data[2:]
+
+	// Unpack text value
+	if len(data) < textLen {
+		goto ERROR
+	}
+
+	text = string(data[:textLen])
+	data = data[textLen:]
+
+	// We must have consumed all bytes at this point
+	if len(data) != 0 {
+		goto ERROR
+	}
+
+	// Return a value
+	*v = TextWithLang{Lang: lang, Text: text}
+	return nil
+
+ERROR:
+	return errors.New("invalid data format")
+}
+
 // Binary represents a raw binary Value
 type Binary []byte
 
@@ -321,6 +484,12 @@ func (Binary) Type() Type { return TypeBinary }
 // Encode TextWithLang Value into wire format
 func (v Binary) encode() ([]byte, error) {
 	return []byte(v), nil
+}
+
+// Decode Binary Value from wire format
+func (v *Binary) decode(data []byte) error {
+	*v = data
+	return nil
 }
 
 // Collection represents a collection of attributes
@@ -351,4 +520,9 @@ func (v Collection) encode() ([]byte, error) {
 	// Note, TagBeginCollection attribute contains
 	// no data, collection itself handled the different way
 	return []byte{}, nil
+}
+
+// Decode Collection Value from wire format
+func (v *Collection) decode(data []byte) error {
+	panic("internal error")
 }
