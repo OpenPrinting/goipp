@@ -54,7 +54,6 @@ func (values Values) String() string {
 type Value interface {
 	String() string
 	Type() Type
-	isValue()
 	encode() ([]byte, error)
 	decode([]byte) (Value, error)
 }
@@ -78,8 +77,6 @@ func ValueEqual(v1, v2 Value) bool {
 // Void represents "no value"
 type Void struct{}
 
-func (Void) isValue() {}
-
 // String() converts Void Value to string
 func (Void) String() string { return "" }
 
@@ -98,8 +95,6 @@ func (Void) decode([]byte) (Value, error) {
 
 // Integer represents an Integer Value
 type Integer uint32
-
-func (Integer) isValue() {}
 
 // String() converts Integer value to string
 func (v Integer) String() string { return fmt.Sprintf("%d", uint32(v)) }
@@ -123,8 +118,6 @@ func (Integer) decode(data []byte) (Value, error) {
 
 // Boolean represents a boolean Value
 type Boolean bool
-
-func (Boolean) isValue() {}
 
 // String() converts Boolean value to string
 func (v Boolean) String() string { return fmt.Sprintf("%t", bool(v)) }
@@ -152,8 +145,6 @@ func (Boolean) decode(data []byte) (Value, error) {
 // String represents a string Value
 type String string
 
-func (String) isValue() {}
-
 // String() converts String value to string
 func (v String) String() string { return string(v) }
 
@@ -172,8 +163,6 @@ func (String) decode(data []byte) (Value, error) {
 
 // Time represents a DateTime Value
 type Time struct{ time.Time }
-
-func (Time) isValue() {}
 
 // String() converts Time value to string
 func (v Time) String() string { return v.Time.Format(time.RFC3339) }
@@ -275,8 +264,6 @@ type Resolution struct {
 	Units      Units // Resolution units
 }
 
-func (Resolution) isValue() {}
-
 // String() converts Resolution value to string
 func (v Resolution) String() string {
 	return fmt.Sprintf("%dx%d%s", v.Xres, v.Yres, v.Units)
@@ -340,8 +327,6 @@ type Range struct {
 	Lower, Upper int // Lower/upper bounds
 }
 
-func (Range) isValue() {}
-
 // String() converts Range value to string
 func (v Range) String() string {
 	return fmt.Sprintf("%d-%d", v.Lower, v.Upper)
@@ -382,8 +367,6 @@ func (Range) decode(data []byte) (Value, error) {
 type TextWithLang struct {
 	Lang, Text string // Language and text
 }
-
-func (TextWithLang) isValue() {}
 
 // String() converts TextWithLang value to string
 func (v TextWithLang) String() string { return v.Text + " [" + v.Lang + "]" }
@@ -473,8 +456,6 @@ ERROR:
 // Binary represents a raw binary Value
 type Binary []byte
 
-func (Binary) isValue() {}
-
 // String() converts Range value to string
 func (v Binary) String() string {
 	return fmt.Sprintf("%x", []byte(v))
@@ -495,8 +476,6 @@ func (Binary) decode(data []byte) (Value, error) {
 
 // Collection represents a collection of attributes
 type Collection []Attribute
-
-func (Collection) isValue() {}
 
 // String() converts Collection to string
 func (v Collection) String() string {
