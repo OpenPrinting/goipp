@@ -286,42 +286,24 @@ func check(t *testing.T, err error, mustFail bool) {
 	}
 }
 
-func testDecode(t *testing.T, data []byte, mustFail bool) {
-	log_dump(data)
-
-	var m Message
-	err := m.Decode(bytes.NewBuffer(data))
-	check(t, err, mustFail)
-
+// Check that err == nil
+func assertNoError(t *testing.T, err error) {
 	if err != nil {
-		return
+		t.Errorf("%s", err)
 	}
+}
 
-	m.Print(os.Stdout, true)
-
-	buf := bytes.NewBuffer(nil)
-	err = m.Encode(buf)
-	check(t, err, false)
-
-	log_dump(buf.Bytes())
-
-	var m2 Message
-	err = m2.Decode(bytes.NewBuffer(buf.Bytes()))
-	check(t, err, false)
-	m2.Print(os.Stdout, true)
+// Check that err != nil
+func assertWithError(t *testing.T, err error) {
+	if err == nil {
+		t.Errorf("Error expected")
+	}
 }
 
 // Check that value type is as specified
 func assertValueType(t *testing.T, val Value, typ Type) {
 	if val.Type() != typ {
 		t.Errorf("%s: type is %s, must be %s", reflect.TypeOf(val).Name(), val.Type(), typ)
-	}
-}
-
-// Check that err == nil
-func assertNoError(t *testing.T, err error) {
-	if err != nil {
-		t.Errorf("%s", err)
 	}
 }
 
@@ -455,10 +437,22 @@ func TestBinaryValue(t *testing.T) {
 	assertDecode(t, data, v)
 }
 
-func TestGoipp(t *testing.T) {
+// Test message decoding
+func testDecode(t *testing.T, data []byte, mustFail bool) {
+	var m Message
+	err := m.Decode(bytes.NewBuffer(data))
+
+	if mustFail {
+		assertWithError(t, err)
+	} else {
+		assertNoError(t, err)
+	}
+}
+
+func TestMessageDecode(t *testing.T) {
 	testDecode(t, good_message_1, false)
-	//testDecode(t, good_message_2, false)
-	//testDecode(t, bad_message_1, true)
+	testDecode(t, good_message_2, false)
+	testDecode(t, bad_message_1, true)
 
 	/*
 		//client := ipp.NewIPPClient("192.168.1.102", 631, "", "", false)
