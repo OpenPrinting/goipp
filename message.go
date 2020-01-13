@@ -90,6 +90,11 @@ func NewResponse(v Version, status Status) *Message {
 	}
 }
 
+// Reset the message into initial state
+func (m *Message) Reset() {
+	*m = Message{}
+}
+
 // Encode the message
 func (m *Message) Encode(out io.Writer) error {
 	me := messageEncoder{
