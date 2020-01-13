@@ -59,6 +59,22 @@ type Value interface {
 	decode([]byte) (Value, error)
 }
 
+// ValueEqual checks if two values are equal
+func ValueEqual(v1, v2 Value) bool {
+	if v1.Type() != v2.Type() {
+		return false
+	}
+
+	switch v1.Type() {
+	case TypeDateTime:
+		return v1.(Time).Equal(v2.(Time).Time)
+	case TypeBinary:
+		return bytes.Equal(v1.(Binary), v2.(Binary))
+	}
+
+	return v1 == v2
+}
+
 // Void represents "no value"
 type Void struct{}
 
@@ -246,7 +262,7 @@ func (Time) decode(data []byte) (Value, error) {
 		int(data[4]),                            // hour
 		int(data[5]),                            // min
 		int(data[6]),                            // sec
-		int(data[6])*100000000,                  // nsec
+		int(data[7])*100000000,                  // nsec
 		l,                                       // time zone
 	)
 
