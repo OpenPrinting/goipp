@@ -41,44 +41,37 @@ func (a *Attribute) unpack(tag Tag, value []byte) error {
 
 	switch tag.Type() {
 	case TypeVoid, TypeCollection:
-		var v Void
-		val, err = v, v.decode(value)
+		val = Void{}
 
 	case TypeInteger:
-		var v Integer
-		val, err = v, v.decode(value)
+		val = Integer(0)
 
 	case TypeBoolean:
-		var v Boolean
-		val, err = v, v.decode(value)
+		val = Boolean(false)
 
 	case TypeString:
-		var v String
-		val, err = v, v.decode(value)
+		val = String("")
 
 	case TypeDateTime:
-		var v Time
-		val, err = v, v.decode(value)
+		val = Time{}
 
 	case TypeResolution:
-		var v Resolution
-		val, err = v, v.decode(value)
+		val = Resolution{}
 
 	case TypeRange:
-		var v Range
-		val, err = v, v.decode(value)
+		val = Range{}
 
 	case TypeTextWithLang:
-		var v TextWithLang
-		val, err = v, v.decode(value)
+		val = TextWithLang{}
 
 	case TypeBinary:
-		var v Binary
-		val, err = v, v.decode(value)
+		val = Binary(nil)
 
 	default:
 		panic(fmt.Sprintf("(Attribute) uppack(): tag=%s type=%s", tag, tag.Type()))
 	}
+
+	val, err = val.decode(value)
 
 	if err == nil {
 		a.Values.Add(tag, val)

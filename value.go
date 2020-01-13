@@ -56,12 +56,7 @@ type Value interface {
 	Type() Type
 	isValue()
 	encode() ([]byte, error)
-}
-
-// valueDecoder adds decode() method to Value
-type valueDecoder interface {
-	Value
-	decode([]byte) error
+	decode([]byte) (Value, error)
 }
 
 // Void represents "no value"
@@ -81,8 +76,8 @@ func (v Void) encode() ([]byte, error) {
 }
 
 // Decode Void Value from wire format
-func (Void) decode([]byte) error {
-	return nil
+func (Void) decode([]byte) (Value, error) {
+	return Void{}, nil
 }
 
 // Integer represents an Integer Value
@@ -102,13 +97,12 @@ func (v Integer) encode() ([]byte, error) {
 }
 
 // Decode Integer Value from wire format
-func (v *Integer) decode(data []byte) error {
+func (Integer) decode(data []byte) (Value, error) {
 	if len(data) != 4 {
-		return errors.New("value must be 4 bytes")
+		return nil, errors.New("value must be 4 bytes")
 	}
 
-	*v = Integer(binary.BigEndian.Uint32(data))
-	return nil
+	return Integer(binary.BigEndian.Uint32(data)), nil
 }
 
 // Boolean represents a boolean Value
@@ -131,13 +125,12 @@ func (v Boolean) encode() ([]byte, error) {
 }
 
 // Decode Boolean Value from wire format
-func (v *Boolean) decode(data []byte) error {
+func (Boolean) decode(data []byte) (Value, error) {
 	if len(data) != 1 {
-		return errors.New("value must be 1 byte")
+		return nil, errors.New("value must be 1 byte")
 	}
 
-	*v = Boolean(data[0] != 0)
-	return nil
+	return Boolean(data[0] != 0), nil
 }
 
 // String represents a string Value
@@ -157,9 +150,8 @@ func (v String) encode() ([]byte, error) {
 }
 
 // Decode String Value from wire format
-func (v *String) decode(data []byte) error {
-	*v = String(data)
-	return nil
+func (String) decode(data []byte) (Value, error) {
+	return String(data), nil
 }
 
 // Time represents a DateTime Value
@@ -218,10 +210,10 @@ func (v Time) encode() ([]byte, error) {
 }
 
 // Decode Time Value from wire format
-func (v *Time) decode(data []byte) error {
+func (Time) decode(data []byte) (Value, error) {
 	// Check size
 	if len(data) != 9 && len(data) != 11 {
-		return errors.New("value must be 9 or 11 bytes")
+		return nil, errors.New("value must be 9 or 11 bytes")
 	}
 
 	// Decode time zone
@@ -243,7 +235,7 @@ func (v *Time) decode(data []byte) error {
 		l = time.FixedZone(name, off)
 
 	default:
-		return errors.New("invalid data format")
+		return nil, errors.New("invalid data format")
 	}
 
 	// Decode time
@@ -258,8 +250,7 @@ func (v *Time) decode(data []byte) error {
 		l,                                       // time zone
 	)
 
-	*v = Time{t}
-	return nil
+	return Time{t}, nil
 }
 
 // Resolution represents a resolution Value
@@ -295,18 +286,16 @@ func (v Resolution) encode() ([]byte, error) {
 }
 
 // Decode Resolution Value from wire format
-func (v *Resolution) decode(data []byte) error {
+func (Resolution) decode(data []byte) (Value, error) {
 	if len(data) != 9 {
-		return errors.New("value must be 9 bytes")
+		return nil, errors.New("value must be 9 bytes")
 	}
 
-	*v = Resolution{
+	return Resolution{
 		Xres:  int(binary.BigEndian.Uint32(data[0:4])),
 		Yres:  int(binary.BigEndian.Uint32(data[4:8])),
 		Units: Units(data[9]),
-	}
-
-	return nil
+	}, nil
 
 }
 
@@ -360,17 +349,15 @@ func (v Range) encode() ([]byte, error) {
 }
 
 // Decode Range Value from wire format
-func (v *Range) decode(data []byte) error {
+func (Range) decode(data []byte) (Value, error) {
 	if len(data) != 8 {
-		return errors.New("value must be 9 bytes")
+		return nil, errors.New("value must be 9 bytes")
 	}
 
-	*v = Range{
+	return Range{
 		Lower: int(binary.BigEndian.Uint32(data[0:4])),
 		Upper: int(binary.BigEndian.Uint32(data[4:8])),
-	}
-
-	return nil
+	}, nil
 }
 
 // TextWithLang represents a combination of two strings:
@@ -419,7 +406,7 @@ func (v TextWithLang) encode() ([]byte, error) {
 }
 
 // Decode TextWithLang Value from wire format
-func (v *TextWithLang) decode(data []byte) error {
+func (TextWithLang) decode(data []byte) (Value, error) {
 	var langLen, textLen int
 	var lang, text string
 
@@ -461,11 +448,10 @@ func (v *TextWithLang) decode(data []byte) error {
 	}
 
 	// Return a value
-	*v = TextWithLang{Lang: lang, Text: text}
-	return nil
+	return TextWithLang{Lang: lang, Text: text}, nil
 
 ERROR:
-	return errors.New("invalid data format")
+	return nil, errors.New("invalid data format")
 }
 
 // Binary represents a raw binary Value
@@ -487,9 +473,8 @@ func (v Binary) encode() ([]byte, error) {
 }
 
 // Decode Binary Value from wire format
-func (v *Binary) decode(data []byte) error {
-	*v = data
-	return nil
+func (Binary) decode(data []byte) (Value, error) {
+	return Binary(data), nil
 }
 
 // Collection represents a collection of attributes
@@ -523,6 +508,6 @@ func (v Collection) encode() ([]byte, error) {
 }
 
 // Decode Collection Value from wire format
-func (v *Collection) decode(data []byte) error {
+func (Collection) decode(data []byte) (Value, error) {
 	panic("internal error")
 }
