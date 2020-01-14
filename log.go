@@ -4,6 +4,9 @@
  * See LICENSE for license terms and conditions
  *
  * Logging
+ *
+ * Note, this stuff is temporary here. Used only for testing
+ * and will be removed soon
  */
 
 package goipp
