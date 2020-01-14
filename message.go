@@ -93,6 +93,32 @@ func NewResponse(v Version, status Status, id uint32) *Message {
 	}
 }
 
+// Equal checks that two messages are equal
+func (m Message) Equal(m2 Message) bool {
+	if m.Version != m2.Version ||
+		m.Code != m2.Code ||
+		m.RequestID != m2.RequestID {
+		return false
+	}
+
+	groups1 := m.attrGroups()
+	groups2 := m2.attrGroups()
+
+	if len(groups1) != len(groups2) {
+		return false
+	}
+
+	for i, grp1 := range groups1 {
+		grp2 := groups2[i]
+
+		if grp1.tag != grp2.tag || !grp1.attrs.Equal(grp2.attrs) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Reset the message into initial state
 func (m *Message) Reset() {
 	*m = Message{}
@@ -195,12 +221,12 @@ func (m *Message) printIndent(out io.Writer, indent int) {
 // This is a helper function for message encoder and pretty-printer
 func (m *Message) attrGroups() []struct {
 	tag   Tag
-	attrs []Attribute
+	attrs Attributes
 } {
 	// Initialize slice of groups
 	groups := []struct {
 		tag   Tag
-		attrs []Attribute
+		attrs Attributes
 	}{
 		{TagOperationGroup, m.Operation},
 		{TagJobGroup, m.Job},

@@ -20,6 +20,22 @@ func (attrs *Attributes) Add(attr Attribute) {
 	*attrs = append(*attrs, attr)
 }
 
+// Equal checks that attrs and attrs2 are equal
+func (attrs Attributes) Equal(attrs2 Attributes) bool {
+	if len(attrs) != len(attrs2) {
+		return false
+	}
+
+	for i, attr := range attrs {
+		attr2 := attrs2[i]
+		if !attr.Equal(attr2) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Attribute represents a single attribute
 type Attribute struct {
 	Name   string // Attribute name
@@ -31,6 +47,12 @@ func MakeAttribute(name string, tag Tag, value Value) Attribute {
 	attr := Attribute{Name: name}
 	attr.Values.Add(tag, value)
 	return attr
+}
+
+// Equal checks that Attribute is equal to another Attribute
+// (i.e., names are the same and values are equal
+func (a Attribute) Equal(a2 Attribute) bool {
+	return a.Name == a2.Name && a.Values.Equal(a2.Values)
 }
 
 // Unpack attribute value

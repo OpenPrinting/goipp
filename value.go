@@ -50,6 +50,22 @@ func (values Values) String() string {
 	return buf.String()
 }
 
+// Equal checks that two Values are equal
+func (values Values) Equal(values2 Values) bool {
+	if len(values) != len(values2) {
+		return false
+	}
+
+	for i, v := range values {
+		v2 := values2[i]
+		if v.T != v2.T || !ValueEqual(v.V, v2.V) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Value represents an attribute value
 type Value interface {
 	String() string
