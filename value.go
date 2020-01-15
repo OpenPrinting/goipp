@@ -91,6 +91,9 @@ func ValueEqual(v1, v2 Value) bool {
 }
 
 // Void represents "no value"
+//
+// Use with: TagUnsupportedValue, TagDefault, TagUnknown,
+// TagNotSettable, TagDeleteAttr, TagAdminDefine
 type Void struct{}
 
 // String() converts Void Value to string
@@ -110,6 +113,8 @@ func (Void) decode([]byte) (Value, error) {
 }
 
 // Integer represents an Integer Value
+//
+// Use with: TagInteger, TagEnum
 type Integer int32
 
 // String() converts Integer value to string
@@ -133,6 +138,8 @@ func (Integer) decode(data []byte) (Value, error) {
 }
 
 // Boolean represents a boolean Value
+//
+// Use with: TagBoolean
 type Boolean bool
 
 // String() converts Boolean value to string
@@ -159,6 +166,9 @@ func (Boolean) decode(data []byte) (Value, error) {
 }
 
 // String represents a string Value
+//
+// Use with: TagText, TagName, TagReservedString, TagKeyword, TagURI,
+// TagURIScheme, TagCharset, TagLanguage, TagMimeType, TagMemberName
 type String string
 
 // String() converts String value to string
@@ -178,6 +188,8 @@ func (String) decode(data []byte) (Value, error) {
 }
 
 // Time represents a DateTime Value
+//
+// Use with: TagTime
 type Time struct{ time.Time }
 
 // String() converts Time value to string
@@ -275,6 +287,8 @@ func (Time) decode(data []byte) (Value, error) {
 }
 
 // Resolution represents a resolution Value
+//
+// Use with: TagResolution
 type Resolution struct {
 	Xres, Yres int   // X/Y resolutions
 	Units      Units // Resolution units
@@ -339,6 +353,8 @@ func (u Units) String() string {
 }
 
 // Range represents a range of integers Value
+//
+// Use with: TagRange
 type Range struct {
 	Lower, Upper int // Lower/upper bounds
 }
@@ -380,6 +396,8 @@ func (Range) decode(data []byte) (Value, error) {
 // TextWithLang represents a combination of two strings:
 // one is a name of natural language and second is a text
 // on this language
+//
+// Use with: TagTextLang, TagNameLang
 type TextWithLang struct {
 	Lang, Text string // Language and text
 }
@@ -491,6 +509,8 @@ func (Binary) decode(data []byte) (Value, error) {
 }
 
 // Collection represents a collection of attributes
+//
+// Use with: TagBeginCollection
 type Collection []Attribute
 
 // String() converts Collection to string
