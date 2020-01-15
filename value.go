@@ -110,10 +110,10 @@ func (Void) decode([]byte) (Value, error) {
 }
 
 // Integer represents an Integer Value
-type Integer uint32
+type Integer int32
 
 // String() converts Integer value to string
-func (v Integer) String() string { return fmt.Sprintf("%d", uint32(v)) }
+func (v Integer) String() string { return fmt.Sprintf("%d", int32(v)) }
 
 // Type() returns type of Value
 func (Integer) Type() Type { return TypeInteger }
