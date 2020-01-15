@@ -125,8 +125,9 @@ func (me *messageEncoder) encodeTag(tag Tag) error {
 
 // Encode Attribute name
 func (me *messageEncoder) encodeName(name string) error {
-	if len(name) > math.MaxUint16 {
-		return fmt.Errorf("Attribute name exceeds %d bytes", len(name))
+	if len(name) > math.MaxInt16 {
+		return fmt.Errorf("Attribute name exceeds %d bytes",
+			math.MaxInt16)
 	}
 
 	err := me.encodeU16(uint16(len(name)))
@@ -159,8 +160,9 @@ func (me *messageEncoder) encodeValue(tag Tag, v Value) error {
 		return err
 	}
 
-	if len(data) > math.MaxUint16 {
-		return fmt.Errorf("Attribute value exceeds %d bytes", len(data))
+	if len(data) > math.MaxInt16 {
+		return fmt.Errorf("Attribute value exceeds %d bytes",
+			math.MaxInt16)
 	}
 
 	err = me.encodeU16(uint16(len(data)))
