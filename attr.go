@@ -57,7 +57,6 @@ func (a Attribute) Equal(a2 Attribute) bool {
 
 // Unpack attribute value
 func (a *Attribute) unpack(tag Tag, value []byte) error {
-	//var decoder valueDecoder
 	var err error
 	var val Value
 
