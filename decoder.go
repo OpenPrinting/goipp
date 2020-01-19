@@ -171,6 +171,12 @@ func (md *messageDecoder) decodeCollection() (Collection, error) {
 		case tag == TagMemberName:
 			attr.Name = string(attr.Values[0].V.(String))
 			attr.Values = nil
+
+			if attr.Name == "" {
+				err = fmt.Errorf("collection: %s contains empty attribute name", tag)
+				return nil, err
+			}
+
 			collection = append(collection, attr)
 
 		case len(collection) == 0:
