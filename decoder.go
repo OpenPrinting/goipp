@@ -131,57 +131,61 @@ func (md *messageDecoder) decode(m *Message) error {
 // Decode a Collection
 func (md *messageDecoder) decodeCollection() (Collection, error) {
 	collection := make(Collection, 0)
+	//var name string
 
 	for {
-		// Decode next TagEndCollection or next TagMemberName
 		tag, err := md.decodeTag()
 		if err != nil {
 			return nil, err
 		}
 
-		if tag != TagEndCollection && tag != TagMemberName {
-			err = fmt.Errorf(
-				"Collection: expected %s or %s, got %s",
-				TagMemberName, TagEndCollection, tag)
+		// Delimiter cannot be inside a collection
+		if tag.IsDelimiter() {
+			err = fmt.Errorf("collection: unexpected %s", tag)
 			return nil, err
 		}
 
-		attrName, err := md.decodeAttribute(tag)
-		if err != nil {
-			return nil, err
+		// We are about to finish with current attribute (if any),
+		// either because we've got an end of collection, or a next
+		// attribute name. Check that we are leaving the current
+		// attribute in a consistent state (i.e., with at least one value)
+		if tag == TagMemberName || tag == TagEndCollection {
+			l := len(collection)
+			if l > 0 && len(collection[l-1].Values) == 0 {
+				err = fmt.Errorf("collection: unexpected %s, expected value tag", tag)
+				return nil, err
+			}
 		}
 
-		if tag == TagEndCollection {
-			return collection, nil
-		}
-
-		// Decode member value
-		tag, err = md.decodeTag()
-		if err != nil {
-			return nil, err
-		}
-
-		if tag.IsDelimiter() ||
-			tag == TagEndCollection || tag == TagMemberName {
-			err = fmt.Errorf("Collection: unexpected %s", tag)
-			return nil, err
-		}
-
+		// Fetch next attribute
 		attr, err := md.decodeAttribute(tag)
 		if err != nil {
 			return nil, err
 		}
 
-		attr.Name = string(attrName.Values[0].V.(String))
-		if err == nil && tag == TagBeginCollection {
-			attr.Values[0].V, err = md.decodeCollection()
-		}
+		// Process next attribute
+		switch {
+		case tag == TagEndCollection:
+			return collection, nil
 
-		if err != nil {
+		case tag == TagMemberName:
+			attr.Name = string(attr.Values[0].V.(String))
+			attr.Values = nil
+			collection = append(collection, attr)
+
+		case len(collection) == 0:
+			// We've got a value without preceding TagMemberName
+			err = fmt.Errorf("collection: unexpected %s, expected %s", tag, TagMemberName)
 			return nil, err
-		}
 
-		collection = append(collection, attr)
+		default:
+			if tag == TagBeginCollection {
+				attr.Values[0].V, err = md.decodeCollection()
+			}
+
+			l := len(collection)
+			collection[l-1].Values.Add(tag, attr.Values[0].V)
+		}
 	}
 }
 
