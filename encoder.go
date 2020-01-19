@@ -66,7 +66,7 @@ func (me *messageEncoder) encode(m *Message) error {
 }
 
 // Encode attribute
-func (me *messageEncoder) encodeAttr(attr Attribute, check_tag bool) error {
+func (me *messageEncoder) encodeAttr(attr Attribute, checkTag bool) error {
 	// Wire format
 	//     1 byte:   Tag
 	//     2 bytes:  len(Name)
@@ -84,7 +84,7 @@ func (me *messageEncoder) encodeAttr(attr Attribute, check_tag bool) error {
 	for _, val := range attr.Values {
 		tag := val.T
 
-		if check_tag {
+		if checkTag {
 			if tag.IsDelimiter() || tag == TagMemberName || tag == TagEndCollection {
 				return fmt.Errorf("Tag %s cannot be used with value", tag)
 			}

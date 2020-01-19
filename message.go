@@ -133,7 +133,7 @@ func (m *Message) Encode(out io.Writer) error {
 	return me.encode(m)
 }
 
-// Encode message to byte slice
+// EncodeBytes encodes message to byte slice
 func (m *Message) EncodeBytes() ([]byte, error) {
 	var buf bytes.Buffer
 
@@ -151,7 +151,7 @@ func (m *Message) Decode(in io.Reader) error {
 	return md.decode(m)
 }
 
-// Decode message from byte slice
+// DecodeBytes decodes message from byte slice
 func (m *Message) DecodeBytes(data []byte) error {
 	return m.Decode(bytes.NewBuffer(data))
 }

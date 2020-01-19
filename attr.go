@@ -42,7 +42,7 @@ type Attribute struct {
 	Values Values // Slice of values
 }
 
-// Make Attribute with single value
+// MakeAttribute makes Attribute with single value
 func MakeAttribute(name string, tag Tag, value Value) Attribute {
 	attr := Attribute{Name: name}
 	attr.Values.Add(tag, value)

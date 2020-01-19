@@ -99,7 +99,7 @@ type Void struct{}
 // String() converts Void Value to string
 func (Void) String() string { return "" }
 
-// Type() returns type of Value
+// Type returns type of Value
 func (Void) Type() Type { return TypeVoid }
 
 // Encode Void Value into wire format
@@ -120,7 +120,7 @@ type Integer int32
 // String() converts Integer value to string
 func (v Integer) String() string { return fmt.Sprintf("%d", int32(v)) }
 
-// Type() returns type of Value
+// Type returns type of Value
 func (Integer) Type() Type { return TypeInteger }
 
 // Encode Integer Value into wire format
@@ -145,7 +145,7 @@ type Boolean bool
 // String() converts Boolean value to string
 func (v Boolean) String() string { return fmt.Sprintf("%t", bool(v)) }
 
-// Type() returns type of Value
+// Type returns type of Value
 func (Boolean) Type() Type { return TypeBoolean }
 
 // Encode Boolean Value into wire format
@@ -174,7 +174,7 @@ type String string
 // String() converts String value to string
 func (v String) String() string { return string(v) }
 
-// Type() returns type of Value
+// Type returns type of Value
 func (String) Type() Type { return TypeString }
 
 // Encode String Value into wire format
@@ -195,7 +195,7 @@ type Time struct{ time.Time }
 // String() converts Time value to string
 func (v Time) String() string { return v.Time.Format(time.RFC3339) }
 
-// Type() returns type of Value
+// Type returns type of Value
 func (Time) Type() Type { return TypeDateTime }
 
 // Encode Time Value into wire format
@@ -299,7 +299,7 @@ func (v Resolution) String() string {
 	return fmt.Sprintf("%dx%d%s", v.Xres, v.Yres, v.Units)
 }
 
-// Type() returns type of Value
+// Type returns type of Value
 func (Resolution) Type() Type { return TypeResolution }
 
 // Encode Resolution Value into wire format
@@ -364,7 +364,7 @@ func (v Range) String() string {
 	return fmt.Sprintf("%d-%d", v.Lower, v.Upper)
 }
 
-// Type() returns type of Value
+// Type returns type of Value
 func (Range) Type() Type { return TypeRange }
 
 // Encode Range Value into wire format
@@ -405,7 +405,7 @@ type TextWithLang struct {
 // String() converts TextWithLang value to string
 func (v TextWithLang) String() string { return v.Text + " [" + v.Lang + "]" }
 
-// Type() returns type of Value
+// Type returns type of Value
 func (TextWithLang) Type() Type { return TypeTextWithLang }
 
 // Encode TextWithLang Value into wire format
@@ -495,7 +495,7 @@ func (v Binary) String() string {
 	return fmt.Sprintf("%x", []byte(v))
 }
 
-// Type() returns type of Value
+// Type returns type of Value
 func (Binary) Type() Type { return TypeBinary }
 
 // Encode TextWithLang Value into wire format
@@ -528,7 +528,7 @@ func (v Collection) String() string {
 	return buf.String()
 }
 
-// Type() returns type of Value
+// Type returns type of Value
 func (Collection) Type() Type { return TypeCollection }
 
 // Encode Collection Value into wire format
