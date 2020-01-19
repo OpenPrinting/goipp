@@ -48,7 +48,7 @@ func (me *messageEncoder) encode(m *Message) error {
 				if attr.Name == "" {
 					err = errors.New("Attribute without name")
 				} else {
-					err = me.encodeAttr(attr)
+					err = me.encodeAttr(attr, true)
 				}
 			}
 		}
@@ -66,7 +66,7 @@ func (me *messageEncoder) encode(m *Message) error {
 }
 
 // Encode attribute
-func (me *messageEncoder) encodeAttr(attr Attribute) error {
+func (me *messageEncoder) encodeAttr(attr Attribute, check_tag bool) error {
 	// Wire format
 	//     1 byte:   Tag
 	//     2 bytes:  len(Name)
@@ -82,7 +82,15 @@ func (me *messageEncoder) encodeAttr(attr Attribute) error {
 
 	name := attr.Name
 	for _, val := range attr.Values {
-		err := me.encodeTag(val.T)
+		tag := val.T
+
+		if check_tag {
+			if tag.IsDelimiter() || tag == TagMemberName || tag == TagEndCollection {
+				return fmt.Errorf("Tag %s cannot be used with value", tag)
+			}
+		}
+
+		err := me.encodeTag(tag)
 		if err != nil {
 			return err
 		}
@@ -187,9 +195,9 @@ func (me *messageEncoder) encodeCollection(tag Tag, collection Collection) error
 
 		attrName := MakeAttribute("", TagMemberName, String(attr.Name))
 
-		err := me.encodeAttr(attrName)
+		err := me.encodeAttr(attrName, false)
 		if err == nil {
-			err = me.encodeAttr(Attribute{Name: "", Values: attr.Values})
+			err = me.encodeAttr(Attribute{Name: "", Values: attr.Values}, true)
 		}
 
 		if err != nil {
@@ -197,7 +205,7 @@ func (me *messageEncoder) encodeCollection(tag Tag, collection Collection) error
 		}
 	}
 
-	return me.encodeAttr(MakeAttribute("", TagEndCollection, Void{}))
+	return me.encodeAttr(MakeAttribute("", TagEndCollection, Void{}), false)
 }
 
 // Write a piece of raw data to output stream

@@ -180,6 +180,8 @@ func testDecode(t *testing.T, data []byte, mustFail bool) {
 	}
 
 	buf, err := m.EncodeBytes()
+	assertNoError(t, err)
+
 	if !bytes.Equal(buf, data) {
 		t.Errorf("Message is not the same after decoding and encoding")
 	}
