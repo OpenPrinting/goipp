@@ -203,56 +203,6 @@ func TestDecodeBigMessage(t *testing.T) {
 	testDecode(t, big_message, false)
 }
 
-/*
-func TestMessageDecode(t *testing.T) {
-	//testDecode(t, big_message, false)
-
-		//client := ipp.NewIPPClient("192.168.1.102", 631, "", "", false)
-		//_, err := client.GetPrinterAttributes("printer", nil)
-		//check(err)
-
-		//url := "http://192.168.1.102:631"
-		url := "http://localhost:631"
-
-		rq := ipp.NewRequest(ipp.OperationGetPrinterAttributes, 1)
-		rq.OperationAttributes[ipp.OperationAttributePrinterURI] = url
-		rq.OperationAttributes[ipp.OperationAttributeRequestedAttributes] = ipp.DefaultPrinterAttributes
-
-		data, err := rq.Encode()
-		check(err)
-		log_dump(good_message_1)
-
-		var m Message
-		err = m.Decode(bytes.NewBuffer(test_message))
-		check(err)
-
-		for _, a := range m.Operation {
-			log_debug("%s: %v", a.Name, a.Values)
-		}
-
-		m.Print(os.Stdout, true)
-
-		return
-
-		rsp, err := http.Post(url, "application/ipp", bytes.NewBuffer(data))
-		check(err)
-
-		log_debug("status %s", rsp.Status)
-		data, err = ioutil.ReadAll(rsp.Body)
-		check(err)
-		rsp.Body.Close()
-
-		log_dump(data)
-
-		dec := ipp.NewResponseDecoder(&buffer{data, 0})
-		ipprsp, err := dec.Decode(nil)
-		check(err)
-		_ = ipprsp
-
-		log_debug("%v", ipprsp)
-}
-*/
-
 // ------------------------ Test Data ------------------------
 // The good message - 1
 var good_message_1 = []byte{
