@@ -162,16 +162,16 @@ func (m *Message) DecodeBytes(data []byte) error {
 func (m *Message) Print(out io.Writer, request bool) {
 	out.Write([]byte("{\n"))
 
-	fmt.Fprintf(out, "\tVERSION %s\n", m.Version)
+	fmt.Fprintf(out, msgPrintIndent+"VERSION %s\n", m.Version)
 
 	if request {
-		fmt.Fprintf(out, "\tOPERATION %s\n", Op(m.Code))
+		fmt.Fprintf(out, msgPrintIndent+"OPERATION %s\n", Op(m.Code))
 	} else {
-		fmt.Fprintf(out, "\tSTATUS %s\n", Status(m.Code))
+		fmt.Fprintf(out, msgPrintIndent+"STATUS %s\n", Status(m.Code))
 	}
 
 	for _, grp := range m.attrGroups() {
-		fmt.Fprintf(out, "\n\tGROUP %s\n", grp.tag)
+		fmt.Fprintf(out, "\n"+msgPrintIndent+"GROUP %s\n", grp.tag)
 		for _, attr := range grp.attrs {
 			m.printAttribute(out, attr, 1)
 			out.Write([]byte("\n"))
@@ -211,7 +211,7 @@ func (m *Message) printAttribute(out io.Writer, attr Attribute, indent int) {
 // Print indentation
 func (m *Message) printIndent(out io.Writer, indent int) {
 	for i := 0; i < indent; i++ {
-		out.Write([]byte("\t"))
+		out.Write([]byte(msgPrintIndent))
 	}
 }
 

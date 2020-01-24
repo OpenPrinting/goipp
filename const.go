@@ -11,4 +11,7 @@ package goipp
 const (
 	// ContentType is the HTTP content type for IPP messages
 	ContentType = "application/ipp"
+
+	// msgPrintIndent used for indentation by message pretty-printer
+	msgPrintIndent = "    "
 )
