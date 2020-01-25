@@ -85,6 +85,10 @@ func ValueEqual(v1, v2 Value) bool {
 		return v1.(Time).Equal(v2.(Time).Time)
 	case TypeBinary:
 		return bytes.Equal(v1.(Binary), v2.(Binary))
+	case TypeCollection:
+		c1 := Attributes(v1.(Collection))
+		c2 := Attributes(v2.(Collection))
+		return c1.Equal(c2)
 	}
 
 	return v1 == v2
@@ -511,7 +515,17 @@ func (Binary) decode(data []byte) (Value, error) {
 // Collection represents a collection of attributes
 //
 // Use with: TagBeginCollection
-type Collection []Attribute
+type Collection Attributes
+
+// Add Attribute to Attributes
+func (collection *Collection) Add(attr Attribute) {
+	*collection = append(*collection, attr)
+}
+
+// Equal checks that two collections are equal
+func (c1 Collection) Equal(c2 Attributes) bool {
+	return Attributes(c1).Equal(Attributes(c2))
+}
 
 // String() converts Collection to string
 func (v Collection) String() string {

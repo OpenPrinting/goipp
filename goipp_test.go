@@ -179,6 +179,10 @@ func testDecode(t *testing.T, data []byte, mustFail bool) {
 		return
 	}
 
+	if !m.Equal(m) {
+		t.Errorf("Message is not equal to itself")
+	}
+
 	buf, err := m.EncodeBytes()
 	assertNoError(t, err)
 
