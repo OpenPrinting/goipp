@@ -187,6 +187,9 @@ func (md *messageDecoder) decodeCollection() (Collection, error) {
 		default:
 			if tag == TagBeginCollection {
 				attr.Values[0].V, err = md.decodeCollection()
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			l := len(collection)
