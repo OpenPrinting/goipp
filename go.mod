@@ -1,3 +1,3 @@
-module github.com/alexpevzner/goipp
+module github.com/OpenPrinting/goipp
 
 go 1.13

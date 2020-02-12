@@ -31,7 +31,7 @@ Example:
 	    "net/http"
 	    "os"
 
-	    "github.com/alexpevzner/goipp"
+	    "github.com/OpenPrinting/goipp"
     )
 
     const uri = "http://192.168.1.102:631"

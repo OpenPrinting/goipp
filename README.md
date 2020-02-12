@@ -1,8 +1,8 @@
 # goipp
 
-[![godoc.org](https://godoc.org/github.com/alexpevzner/goipp?status.svg)](http://godoc.org/github.com/alexpevzner/goipp)
-![GitHub](https://img.shields.io/github/license/alexpevzner/goipp)
-[![Go Report Card](https://goreportcard.com/badge/github.com/alexpevzner/goipp)](https://goreportcard.com/report/github.com/alexpevzner/goipp)
+[![godoc.org](https://godoc.org/github.com/OpenPrinting/goipp?status.svg)](http://godoc.org/github.com/OpenPrinting/goipp)
+![GitHub](https://img.shields.io/github/license/OpenPrinting/goipp)
+[![Go Report Card](https://goreportcard.com/badge/github.com/OpenPrinting/goipp)](https://goreportcard.com/report/github.com/OpenPrinting/goipp)
 
 The goipp library is fairly complete implementation of IPP core protocol in
 pure Go. Essentially, it is  IPP messages parser/composer. Transport is
