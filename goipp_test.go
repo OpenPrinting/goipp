@@ -8,6 +8,7 @@ package goipp
 
 import (
 	"bytes"
+	"io/ioutil"
 	"reflect"
 	"testing"
 	"time"
@@ -153,6 +154,26 @@ func TestRangeValue(t *testing.T) {
 	assertDecodeErr(t, []byte{1, 2, 3}, Range{})
 }
 
+// Test TextWithLang value
+func TestTextWithLang(t *testing.T) {
+	v := TextWithLang{"ru_RU", "строка на росском языке"}
+
+	data, err := v.encode()
+	if err != nil {
+		t.Errorf("(TestTextWithLang) encode(): %s", err)
+	}
+
+	v2, err := v.decode(data)
+	if err != nil {
+		t.Errorf("(TestTextWithLang) decode(): %s", err)
+	}
+
+	//if v != v2.(TextWithLang) {
+	if !ValueEqual(v, v2) {
+		t.Errorf("TestTextWithLang not the same after encode and decode")
+	}
+}
+
 // Test Binary value
 func TestBinaryValue(t *testing.T) {
 	v := Binary([]byte("12345"))
@@ -162,6 +183,52 @@ func TestBinaryValue(t *testing.T) {
 
 	data, _ := v.encode()
 	assertDecode(t, data, v)
+}
+
+// Test (Attributes) Equal()
+func TestAttributesEqual(t *testing.T) {
+	attr1 := MakeAttribute("attr1", TagInteger, Integer(1))
+	attr2 := MakeAttribute("attr2", TagInteger, Integer(2))
+	attr3 := MakeAttribute("attr3", TagInteger, Integer(3))
+
+	var attrs1, attrs2 Attributes
+
+	attrs1.Add(attr1)
+	attrs1.Add(attr2)
+
+	attrs2.Add(attr1)
+	attrs2.Add(attr2)
+
+	if !attrs1.Equal(attrs2) {
+		t.Errorf("(Attributes) Equal(): failed for equal attributes")
+	}
+
+	attrs2.Add(attr3)
+	if attrs1.Equal(attrs2) {
+		t.Errorf("(Attributes) Equal(): failed attributes of different length")
+	}
+
+	attrs2 = attrs2[:2]
+
+	if !attrs1.Equal(attrs2) {
+		t.Errorf("(Attributes) Equal(): failed for equal attributes")
+	}
+
+	attrs2[1] = attr3
+	if attrs1.Equal(attrs2) {
+		t.Errorf("(Attributes) Equal(): failed attributes of different value")
+	}
+}
+
+// Test Version
+func TestVersion(t *testing.T) {
+	v := MakeVersion(1, 2)
+	if v.Major() != 1 || v.Minor() != 2 {
+		t.Errorf("Version test failed")
+	}
+	if v.String() != "1.2" {
+		t.Errorf("(Version)String() test failed")
+	}
 }
 
 // Test message decoding
@@ -189,6 +256,10 @@ func testDecode(t *testing.T, data []byte, mustFail bool) {
 	if !bytes.Equal(buf, data) {
 		t.Errorf("Message is not the same after decoding and encoding")
 	}
+
+	// We can't test a lot of (*Message) Print(), so lets test
+	// at least that it doesn't hand
+	m.Print(ioutil.Discard, true)
 }
 
 func TestDecodeGoodMessage1(t *testing.T) {
