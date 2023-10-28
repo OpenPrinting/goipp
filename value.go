@@ -388,7 +388,7 @@ func (v Range) encode() ([]byte, error) {
 // Decode Range Value from wire format
 func (Range) decode(data []byte) (Value, error) {
 	if len(data) != 8 {
-		return nil, errors.New("value must be 9 bytes")
+		return nil, errors.New("value must be 8 bytes")
 	}
 
 	return Range{
