@@ -15,6 +15,7 @@ import (
 // Status represents an IPP Status Code
 type Status Code
 
+// Status codes
 const (
 	StatusOk                              Status = 0x0000 // successful-ok
 	StatusOkIgnoredOrSubstituted          Status = 0x0001 // successful-ok-ignored-or-substituted-attributes

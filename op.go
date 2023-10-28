@@ -15,6 +15,7 @@ import (
 // Op represents an IPP Operation Code
 type Op Code
 
+// Op codes
 const (
 	OpPrintJob             Op = 0x0002 // Print-Job: Print a single file
 	OpPrintURI             Op = 0x0003 // Print-URI: Print a single URL

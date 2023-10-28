@@ -16,6 +16,7 @@ import (
 // of the IPP message
 type Tag int
 
+// Tag values
 const (
 	// Delimiter tags
 	TagZero                   Tag = 0x00 // Zero tag - used for separators

@@ -15,18 +15,19 @@ import (
 // Type enumerates all possible value types
 type Type int
 
+// Type values
 const (
-	TypeInvalid Type = -1
-	TypeVoid    Type = iota
-	TypeInteger
-	TypeBoolean
-	TypeString
-	TypeDateTime
-	TypeResolution
-	TypeRange
-	TypeTextWithLang
-	TypeBinary
-	TypeCollection
+	TypeInvalid      Type = -1   // Invalid Value type
+	TypeVoid         Type = iota // Value is Void
+	TypeInteger                  // Value is Integer
+	TypeBoolean                  // Value is Boolean
+	TypeString                   // Value is String
+	TypeDateTime                 // Value is Time
+	TypeResolution               // Value is Resolution
+	TypeRange                    // Value is Range
+	TypeTextWithLang             // Value is TextWithLang
+	TypeBinary                   // Value is Binary
+	TypeCollection               // Value is Collection
 )
 
 // String converts Type to string, for debugging

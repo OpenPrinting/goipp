@@ -339,6 +339,7 @@ func (Resolution) decode(data []byte) (Value, error) {
 // Units represents resolution units
 type Units uint8
 
+// Resolution units codes
 const (
 	UnitsDpi  Units = 3 // Dots per inch
 	UnitsDpcm Units = 4 // Dots per cm
@@ -518,13 +519,13 @@ func (Binary) decode(data []byte) (Value, error) {
 type Collection Attributes
 
 // Add Attribute to Attributes
-func (collection *Collection) Add(attr Attribute) {
-	*collection = append(*collection, attr)
+func (v *Collection) Add(attr Attribute) {
+	*v = append(*v, attr)
 }
 
 // Equal checks that two collections are equal
-func (c1 Collection) Equal(c2 Attributes) bool {
-	return Attributes(c1).Equal(Attributes(c2))
+func (v Collection) Equal(v2 Attributes) bool {
+	return Attributes(v).Equal(Attributes(v2))
 }
 
 // String() converts Collection to string
@@ -546,7 +547,7 @@ func (v Collection) String() string {
 func (Collection) Type() Type { return TypeCollection }
 
 // Encode Collection Value into wire format
-func (v Collection) encode() ([]byte, error) {
+func (Collection) encode() ([]byte, error) {
 	// Note, TagBeginCollection attribute contains
 	// no data, collection itself handled the different way
 	return []byte{}, nil
