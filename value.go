@@ -17,7 +17,8 @@ import (
 	"time"
 )
 
-// Values represents a slice of Attribute values with tags
+// Values represents a sequence of values with tags
+// Usually Values used as a "payload" of Attribute
 type Values []struct {
 	T Tag   // The tag
 	V Value // The value
@@ -31,7 +32,7 @@ func (values *Values) Add(t Tag, v Value) {
 	}{t, v})
 }
 
-// String() converts Values to string
+// String converts Values to string
 func (values Values) String() string {
 	if len(values) == 1 {
 		return values[0].V.String()
@@ -50,7 +51,7 @@ func (values Values) String() string {
 	return buf.String()
 }
 
-// Equal checks that two Values are equal
+// Equal performs deep check of equality of two Values
 func (values Values) Equal(values2 Values) bool {
 	if len(values) != len(values2) {
 		return false
@@ -67,6 +68,9 @@ func (values Values) Equal(values2 Values) bool {
 }
 
 // Value represents an attribute value
+//
+// IPP uses typed values, and type of each value is unambiguously
+// defined by the attribute tag
 type Value interface {
 	String() string
 	Type() Type
@@ -75,6 +79,9 @@ type Value interface {
 }
 
 // ValueEqual checks if two values are equal
+//
+// Equality means that types and values are equal. For structured
+// values, like Collection, a deep comparison is performed
 func ValueEqual(v1, v2 Value) bool {
 	if v1.Type() != v2.Type() {
 		return false
@@ -100,7 +107,7 @@ func ValueEqual(v1, v2 Value) bool {
 // TagNotSettable, TagDeleteAttr, TagAdminDefine
 type Void struct{}
 
-// String() converts Void Value to string
+// String converts Void Value to string
 func (Void) String() string { return "" }
 
 // Type returns type of Value
@@ -121,7 +128,7 @@ func (Void) decode([]byte) (Value, error) {
 // Use with: TagInteger, TagEnum
 type Integer int32
 
-// String() converts Integer value to string
+// String converts Integer value to string
 func (v Integer) String() string { return fmt.Sprintf("%d", int32(v)) }
 
 // Type returns type of Value
@@ -146,7 +153,7 @@ func (Integer) decode(data []byte) (Value, error) {
 // Use with: TagBoolean
 type Boolean bool
 
-// String() converts Boolean value to string
+// String converts Boolean value to string
 func (v Boolean) String() string { return fmt.Sprintf("%t", bool(v)) }
 
 // Type returns type of Value
@@ -175,7 +182,7 @@ func (Boolean) decode(data []byte) (Value, error) {
 // TagURIScheme, TagCharset, TagLanguage, TagMimeType, TagMemberName
 type String string
 
-// String() converts String value to string
+// String converts String value to string
 func (v String) String() string { return string(v) }
 
 // Type returns type of Value
@@ -196,7 +203,7 @@ func (String) decode(data []byte) (Value, error) {
 // Use with: TagTime
 type Time struct{ time.Time }
 
-// String() converts Time value to string
+// String converts Time value to string
 func (v Time) String() string { return v.Time.Format(time.RFC3339) }
 
 // Type returns type of Value
@@ -298,7 +305,7 @@ type Resolution struct {
 	Units      Units // Resolution units
 }
 
-// String() converts Resolution value to string
+// String converts Resolution value to string
 func (v Resolution) String() string {
 	return fmt.Sprintf("%dx%d%s", v.Xres, v.Yres, v.Units)
 }
@@ -345,7 +352,7 @@ const (
 	UnitsDpcm Units = 4 // Dots per cm
 )
 
-// String() converts Units to string
+// String converts Units to string
 func (u Units) String() string {
 	switch u {
 	case UnitsDpi:
@@ -364,7 +371,7 @@ type Range struct {
 	Lower, Upper int // Lower/upper bounds
 }
 
-// String() converts Range value to string
+// String converts Range value to string
 func (v Range) String() string {
 	return fmt.Sprintf("%d-%d", v.Lower, v.Upper)
 }
@@ -407,7 +414,7 @@ type TextWithLang struct {
 	Lang, Text string // Language and text
 }
 
-// String() converts TextWithLang value to string
+// String converts TextWithLang value to string
 func (v TextWithLang) String() string { return v.Text + " [" + v.Lang + "]" }
 
 // Type returns type of Value
@@ -495,7 +502,7 @@ ERROR:
 // Binary represents a raw binary Value
 type Binary []byte
 
-// String() converts Range value to string
+// String converts Range value to string
 func (v Binary) String() string {
 	return fmt.Sprintf("%x", []byte(v))
 }
@@ -528,7 +535,7 @@ func (v Collection) Equal(v2 Attributes) bool {
 	return Attributes(v).Equal(Attributes(v2))
 }
 
-// String() converts Collection to string
+// String converts Collection to string
 func (v Collection) String() string {
 	var buf bytes.Buffer
 	buf.Write([]byte("{"))
