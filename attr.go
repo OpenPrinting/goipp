@@ -50,7 +50,7 @@ func MakeAttribute(name string, tag Tag, value Value) Attribute {
 }
 
 // Equal checks that Attribute is equal to another Attribute
-// (i.e., names are the same and values are equal
+// (i.e., names are the same and values are equal)
 func (a Attribute) Equal(a2 Attribute) bool {
 	return a.Name == a2.Name && a.Values.Equal(a2.Values)
 }
