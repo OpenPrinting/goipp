@@ -141,10 +141,19 @@ func (m *Message) EncodeBytes() ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-// Decode message
+// Decode reads message from io.Reader
 func (m *Message) Decode(in io.Reader) error {
+	return m.DecodeEx(in, DecoderOptions{})
+}
+
+// DecodeEx reads message from io.Reader
+//
+// It is extended version of the Decode method, with additional
+// DecoderOptions parameter
+func (m *Message) DecodeEx(in io.Reader, opt DecoderOptions) error {
 	md := messageDecoder{
-		in: in,
+		in:  in,
+		opt: opt,
 	}
 
 	m.Reset()
@@ -154,6 +163,14 @@ func (m *Message) Decode(in io.Reader) error {
 // DecodeBytes decodes message from byte slice
 func (m *Message) DecodeBytes(data []byte) error {
 	return m.Decode(bytes.NewBuffer(data))
+}
+
+// DecodeBytesEx decodes message from byte slice
+//
+// It is extended version of the DecodeBytes method, with additional
+// DecoderOptions parameter
+func (m *Message) DecodeBytesEx(data []byte, opt DecoderOptions) error {
+	return m.DecodeEx(bytes.NewBuffer(data), opt)
 }
 
 // Print pretty-prints the message. The 'request' parameter affects

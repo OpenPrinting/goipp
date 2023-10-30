@@ -15,11 +15,27 @@ import (
 	"io"
 )
 
-// Type messageDecoder represents Message decoder
+// DecoderOptions represents message decoder options
+type DecoderOptions struct {
+	// EnableWorkarounds, if set to true, enables various workarounds
+	// for decoding IPP messages that violate IPP protocol specification
+	//
+	// Currently it includes the following workarounds:
+	// * Pantum M7300FDW violates collection encoding rules.
+	//   Instead of using TagMemberName, it uses named attributes
+	//   within the collection
+	//
+	// The list of implemented workarounds may grow in the
+	// future
+	EnableWorkarounds bool
+}
+
+// messageDecoder represents Message decoder
 type messageDecoder struct {
-	in  io.Reader // Input stream
-	off int       // Offset of last read
-	cnt int       // Count of read bytes
+	in  io.Reader      // Input stream
+	off int            // Offset of last read
+	cnt int            // Count of read bytes
+	opt DecoderOptions // Options
 }
 
 // Decode the message
@@ -129,9 +145,35 @@ func (md *messageDecoder) decode(m *Message) error {
 }
 
 // Decode a Collection
+//
+// Collection is like a nested object - an attribute which value is a sequence
+// of named attributes. Collections can be nested.
+//
+// Wire format:
+//   ATTR: Tag = TagBeginCollection,            - the outer attribute that
+//         Name = "name", value - ignored         contains the collection
+//
+//   ATTR: Tag = TagMemberName, name = "",      - member name  \
+//         value - string, name of the next                     |
+//         member                                               | repeated for
+//                                                              | each member
+//   ATTR: Tag = any attribute tag, name = "",  - repeated for  |
+//         value = member value                   multi-value  /
+//                                                members
+//
+//   ATTR: Tag = TagEndCollection, name = "",
+//         value - ignored
+//
+// The format looks a bit baroque, but please note that it was added
+// in the IPP 2.0. For IPP 1.x collection looks like a single multi-value
+// TagBeginCollection attribute (attributes without names considered
+// next value for the previously defined named attributes) and so
+// 1.x parser silently ignores collections and doesn't get confused
+// with them.
 func (md *messageDecoder) decodeCollection() (Collection, error) {
 	collection := make(Collection, 0)
-	//var name string
+
+	memberName := ""
 
 	for {
 		tag, err := md.decodeTag()
@@ -145,16 +187,10 @@ func (md *messageDecoder) decodeCollection() (Collection, error) {
 			return nil, err
 		}
 
-		// We are about to finish with current attribute (if any),
-		// either because we've got an end of collection, or a next
-		// attribute name. Check that we are leaving the current
-		// attribute in a consistent state (i.e., with at least one value)
-		if tag == TagMemberName || tag == TagEndCollection {
-			l := len(collection)
-			if l > 0 && len(collection[l-1].Values) == 0 {
-				err = fmt.Errorf("collection: unexpected %s, expected value tag", tag)
-				return nil, err
-			}
+		// Check for TagMemberName without the subsequent value attribute
+		if (tag == TagMemberName || tag == TagEndCollection) && memberName != "" {
+			err = fmt.Errorf("collection: unexpected %s, expected value tag", tag)
+			return nil, err
 		}
 
 		// Fetch next attribute
@@ -164,36 +200,48 @@ func (md *messageDecoder) decodeCollection() (Collection, error) {
 		}
 
 		// Process next attribute
-		switch {
-		case tag == TagEndCollection:
+		switch tag {
+		case TagEndCollection:
 			return collection, nil
 
-		case tag == TagMemberName:
-			attr.Name = string(attr.Values[0].V.(String))
-			attr.Values = nil
-
-			if attr.Name == "" {
+		case TagMemberName:
+			memberName = string(attr.Values[0].V.(String))
+			if memberName == "" {
 				err = fmt.Errorf("collection: %s contains empty attribute name", tag)
 				return nil, err
 			}
 
-			collection = append(collection, attr)
-
-		case len(collection) == 0:
-			// We've got a value without preceding TagMemberName
-			err = fmt.Errorf("collection: unexpected %s, expected %s", tag, TagMemberName)
-			return nil, err
+		case TagBeginCollection:
+			// Decode nested collection
+			attr.Values[0].V, err = md.decodeCollection()
+			if err != nil {
+				return nil, err
+			}
+			fallthrough
 
 		default:
-			if tag == TagBeginCollection {
-				attr.Values[0].V, err = md.decodeCollection()
-				if err != nil {
-					return nil, err
-				}
+			if md.opt.EnableWorkarounds &&
+				// Workaround for: Pantum M7300FDW
+				//
+				// This device violates collection encoding rules.
+				// Instead of using TagMemberName, it uses named
+				// attributes within the collection
+				memberName == "" && attr.Name != "" {
+				memberName = attr.Name
 			}
 
-			l := len(collection)
-			collection[l-1].Values.Add(tag, attr.Values[0].V)
+			if memberName != "" {
+				attr.Name = memberName
+				collection = append(collection, attr)
+				memberName = ""
+			} else if len(collection) > 0 {
+				l := len(collection)
+				collection[l-1].Values.Add(tag, attr.Values[0].V)
+			} else {
+				// We've got a value without preceding TagMemberName
+				err = fmt.Errorf("collection: unexpected %s, expected %s", tag, TagMemberName)
+				return nil, err
+			}
 		}
 	}
 }
@@ -201,6 +249,7 @@ func (md *messageDecoder) decodeCollection() (Collection, error) {
 // Decode a tag
 func (md *messageDecoder) decodeTag() (Tag, error) {
 	t, err := md.decodeU8()
+
 	return Tag(t), err
 }
 
@@ -217,6 +266,14 @@ func (md *messageDecoder) decodeCode() (Code, error) {
 }
 
 // Decode a single attribute
+//
+// Wire format:
+//   1   byte:   Tag
+//   2+N bytes:  Name length (2 bytes) + name string
+//   2+N bytes:  Value length (2 bytes) + value bytes
+//
+// For the extended tag format, Tag is encoded as TagExtension and
+// 4 bytes of the actual tag value prepended to the value bytes
 func (md *messageDecoder) decodeAttribute(tag Tag) (Attribute, error) {
 	var attr Attribute
 	var value []byte
