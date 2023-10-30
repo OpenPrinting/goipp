@@ -120,86 +120,55 @@ func (tag Tag) Type() Type {
 
 // String() returns a tag name, as defined by RFC 8010
 func (tag Tag) String() string {
-	switch tag {
-	case TagZero:
-		return "zero"
-	case TagOperationGroup:
-		return "operation-attributes-tag"
-	case TagJobGroup:
-		return "job-attributes-tag"
-	case TagEnd:
-		return "end-of-attributes-tag"
-	case TagPrinterGroup:
-		return "printer-attributes-tag"
-	case TagUnsupportedGroup:
-		return "unsupported-attributes-tag"
-	case TagSubscriptionGroup:
-		return "subscription-attributes-tag"
-	case TagEventNotificationGroup:
-		return "event-notification-attributes-tag"
-	case TagResourceGroup:
-		return "resource-attributes-tag"
-	case TagDocumentGroup:
-		return "document-attributes-tag"
-	case TagSystemGroup:
-		return "system-attributes-tag"
-
-	// Value tags
-	case TagUnsupportedValue:
-		return "unsupported"
-	case TagDefault:
-		return "default"
-	case TagUnknown:
-		return "unknown"
-	case TagNoValue:
-		return "no-value"
-	case TagNotSettable:
-		return "not-settable"
-	case TagDeleteAttr:
-		return "delete-attribute"
-	case TagAdminDefine:
-		return "admin-define"
-	case TagInteger:
-		return "integer"
-	case TagBoolean:
-		return "boolean"
-	case TagEnum:
-		return "enum"
-	case TagString:
-		return "octetString"
-	case TagDateTime:
-		return "dateTime"
-	case TagResolution:
-		return "resolution"
-	case TagRange:
-		return "rangeOfInteger"
-	case TagBeginCollection:
-		return "collection"
-	case TagTextLang:
-		return "textWithLanguage"
-	case TagNameLang:
-		return "nameWithLanguage"
-	case TagEndCollection:
-		return "endCollection"
-	case TagText:
-		return "textWithoutLanguage"
-	case TagName:
-		return "nameWithoutLanguage"
-	case TagKeyword:
-		return "keyword"
-	case TagURI:
-		return "uri"
-	case TagURIScheme:
-		return "uriScheme"
-	case TagCharset:
-		return "charset"
-	case TagLanguage:
-		return "naturalLanguage"
-	case TagMimeType:
-		return "mimeMediaType"
-	case TagMemberName:
-		return "memberAttrName"
+	if 0 <= tag && int(tag) < len(tagNames) {
+		if s := tagNames[tag]; s != "" {
+			return s
+		}
 	}
 
-	return fmt.Sprintf("0x%2.2x", int(tag))
+	return fmt.Sprintf("0x%4.4x", uint(tag))
+}
+
+var tagNames = [...]string{
+	// Delimiter tags
+	TagZero:                   "zero",
+	TagOperationGroup:         "operation-attributes-tag",
+	TagJobGroup:               "job-attributes-tag",
+	TagEnd:                    "end-of-attributes-tag",
+	TagPrinterGroup:           "printer-attributes-tag",
+	TagUnsupportedGroup:       "unsupported-attributes-tag",
+	TagSubscriptionGroup:      "subscription-attributes-tag",
+	TagEventNotificationGroup: "event-notification-attributes-tag",
+	TagResourceGroup:          "resource-attributes-tag",
+	TagDocumentGroup:          "document-attributes-tag",
+	TagSystemGroup:            "system-attributes-tag",
+
+	// Value tags
+	TagUnsupportedValue: "unsupported",
+	TagDefault:          "default",
+	TagUnknown:          "unknown",
+	TagNoValue:          "no-value",
+	TagNotSettable:      "not-settable",
+	TagDeleteAttr:       "delete-attribute",
+	TagAdminDefine:      "admin-define",
+	TagInteger:          "integer",
+	TagBoolean:          "boolean",
+	TagEnum:             "enum",
+	TagString:           "octetString",
+	TagDateTime:         "dateTime",
+	TagResolution:       "resolution",
+	TagRange:            "rangeOfInteger",
+	TagBeginCollection:  "collection",
+	TagTextLang:         "textWithLanguage",
+	TagNameLang:         "nameWithLanguage",
+	TagEndCollection:    "endCollection",
+	TagText:             "textWithoutLanguage",
+	TagName:             "nameWithoutLanguage",
+	TagKeyword:          "keyword",
+	TagURI:              "uri",
+	TagURIScheme:        "uriScheme",
+	TagCharset:          "charset",
+	TagLanguage:         "naturalLanguage",
+	TagMimeType:         "mimeMediaType",
+	TagMemberName:       "memberAttrName",
 }

@@ -76,121 +76,71 @@ const (
 )
 
 // String() returns a Status name, as defined by RFC 8010
-func (s Status) String() string {
-	switch s {
-	case StatusOk:
-		return "successful-ok"
-	case StatusOkIgnoredOrSubstituted:
-		return "successful-ok-ignored-or-substituted-attributes"
-	case StatusOkConflicting:
-		return "successful-ok-conflicting-attributes"
-	case StatusOkIgnoredSubscriptions:
-		return "successful-ok-ignored-subscriptions"
-	case StatusOkIgnoredNotifications:
-		return "successful-ok-ignored-notifications"
-	case StatusOkTooManyEvents:
-		return "successful-ok-too-many-events"
-	case StatusOkButCancelSubscription:
-		return "successful-ok-but-cancel-subscription"
-	case StatusOkEventsComplete:
-		return "successful-ok-events-complete"
-	case StatusRedirectionOtherSite:
-		return "redirection-other-site"
-	case StatusCupsSeeOther:
-		return "cups-see-other"
-	case StatusErrorBadRequest:
-		return "client-error-bad-request"
-	case StatusErrorForbidden:
-		return "client-error-forbidden"
-	case StatusErrorNotAuthenticated:
-		return "client-error-not-authenticated"
-	case StatusErrorNotAuthorized:
-		return "client-error-not-authorized"
-	case StatusErrorNotPossible:
-		return "client-error-not-possible"
-	case StatusErrorTimeout:
-		return "client-error-timeout"
-	case StatusErrorNotFound:
-		return "client-error-not-found"
-	case StatusErrorGone:
-		return "client-error-gone"
-	case StatusErrorRequestEntity:
-		return "client-error-request-entity-too-large"
-	case StatusErrorRequestValue:
-		return "client-error-request-value-too-long"
-	case StatusErrorDocumentFormatNotSupported:
-		return "client-error-document-format-not-supported"
-	case StatusErrorAttributesOrValues:
-		return "client-error-attributes-or-values-not-supported"
-	case StatusErrorURIScheme:
-		return "client-error-uri-scheme-not-supported"
-	case StatusErrorCharset:
-		return "client-error-charset-not-supported"
-	case StatusErrorConflicting:
-		return "client-error-conflicting-attributes"
-	case StatusErrorCompressionNotSupported:
-		return "client-error-compression-not-supported"
-	case StatusErrorCompressionError:
-		return "client-error-compression-error"
-	case StatusErrorDocumentFormatError:
-		return "client-error-document-format-error"
-	case StatusErrorDocumentAccess:
-		return "client-error-document-access-error"
-	case StatusErrorAttributesNotSettable:
-		return "client-error-attributes-not-settable"
-	case StatusErrorIgnoredAllSubscriptions:
-		return "client-error-ignored-all-subscriptions"
-	case StatusErrorTooManySubscriptions:
-		return "client-error-too-many-subscriptions"
-	case StatusErrorIgnoredAllNotifications:
-		return "client-error-ignored-all-notifications"
-	case StatusErrorPrintSupportFileNotFound:
-		return "client-error-print-support-file-not-found"
-	case StatusErrorDocumentPassword:
-		return "client-error-document-password-error"
-	case StatusErrorDocumentPermission:
-		return "client-error-document-permission-error"
-	case StatusErrorDocumentSecurity:
-		return "client-error-document-security-error"
-	case StatusErrorDocumentUnprintable:
-		return "client-error-document-unprintable-error"
-	case StatusErrorAccountInfoNeeded:
-		return "client-error-account-info-needed"
-	case StatusErrorAccountClosed:
-		return "client-error-account-closed"
-	case StatusErrorAccountLimitReached:
-		return "client-error-account-limit-reached"
-	case StatusErrorAccountAuthorizationFailed:
-		return "client-error-account-authorization-failed"
-	case StatusErrorNotFetchable:
-		return "client-error-not-fetchable"
-	case StatusErrorInternal:
-		return "server-error-internal-error"
-	case StatusErrorOperationNotSupported:
-		return "server-error-operation-not-supported"
-	case StatusErrorServiceUnavailable:
-		return "server-error-service-unavailable"
-	case StatusErrorVersionNotSupported:
-		return "server-error-version-not-supported"
-	case StatusErrorDevice:
-		return "server-error-device-error"
-	case StatusErrorTemporary:
-		return "server-error-temporary-error"
-	case StatusErrorNotAcceptingJobs:
-		return "server-error-not-accepting-jobs"
-	case StatusErrorBusy:
-		return "server-error-busy"
-	case StatusErrorJobCanceled:
-		return "server-error-job-canceled"
-	case StatusErrorMultipleJobsNotSupported:
-		return "server-error-multiple-document-jobs-not-supported"
-	case StatusErrorPrinterIsDeactivated:
-		return "server-error-printer-is-deactivated"
-	case StatusErrorTooManyJobs:
-		return "server-error-too-many-jobs"
-	case StatusErrorTooManyDocuments:
-		return "server-error-too-many-documents"
+func (status Status) String() string {
+	if int(status) < len(statusNames) {
+		if s := statusNames[status]; s != "" {
+			return s
+		}
 	}
 
-	return fmt.Sprintf("0x%4.4x", int(s))
+	return fmt.Sprintf("0x%4.4x", int(status))
+}
+
+var statusNames = [...]string{
+	StatusOk:                              "successful-ok",
+	StatusOkIgnoredOrSubstituted:          "successful-ok-ignored-or-substituted-attributes",
+	StatusOkConflicting:                   "successful-ok-conflicting-attributes",
+	StatusOkIgnoredSubscriptions:          "successful-ok-ignored-subscriptions",
+	StatusOkIgnoredNotifications:          "successful-ok-ignored-notifications",
+	StatusOkTooManyEvents:                 "successful-ok-too-many-events",
+	StatusOkButCancelSubscription:         "successful-ok-but-cancel-subscription",
+	StatusOkEventsComplete:                "successful-ok-events-complete",
+	StatusRedirectionOtherSite:            "redirection-other-site",
+	StatusCupsSeeOther:                    "cups-see-other",
+	StatusErrorBadRequest:                 "client-error-bad-request",
+	StatusErrorForbidden:                  "client-error-forbidden",
+	StatusErrorNotAuthenticated:           "client-error-not-authenticated",
+	StatusErrorNotAuthorized:              "client-error-not-authorized",
+	StatusErrorNotPossible:                "client-error-not-possible",
+	StatusErrorTimeout:                    "client-error-timeout",
+	StatusErrorNotFound:                   "client-error-not-found",
+	StatusErrorGone:                       "client-error-gone",
+	StatusErrorRequestEntity:              "client-error-request-entity-too-large",
+	StatusErrorRequestValue:               "client-error-request-value-too-long",
+	StatusErrorDocumentFormatNotSupported: "client-error-document-format-not-supported",
+	StatusErrorAttributesOrValues:         "client-error-attributes-or-values-not-supported",
+	StatusErrorURIScheme:                  "client-error-uri-scheme-not-supported",
+	StatusErrorCharset:                    "client-error-charset-not-supported",
+	StatusErrorConflicting:                "client-error-conflicting-attributes",
+	StatusErrorCompressionNotSupported:    "client-error-compression-not-supported",
+	StatusErrorCompressionError:           "client-error-compression-error",
+	StatusErrorDocumentFormatError:        "client-error-document-format-error",
+	StatusErrorDocumentAccess:             "client-error-document-access-error",
+	StatusErrorAttributesNotSettable:      "client-error-attributes-not-settable",
+	StatusErrorIgnoredAllSubscriptions:    "client-error-ignored-all-subscriptions",
+	StatusErrorTooManySubscriptions:       "client-error-too-many-subscriptions",
+	StatusErrorIgnoredAllNotifications:    "client-error-ignored-all-notifications",
+	StatusErrorPrintSupportFileNotFound:   "client-error-print-support-file-not-found",
+	StatusErrorDocumentPassword:           "client-error-document-password-error",
+	StatusErrorDocumentPermission:         "client-error-document-permission-error",
+	StatusErrorDocumentSecurity:           "client-error-document-security-error",
+	StatusErrorDocumentUnprintable:        "client-error-document-unprintable-error",
+	StatusErrorAccountInfoNeeded:          "client-error-account-info-needed",
+	StatusErrorAccountClosed:              "client-error-account-closed",
+	StatusErrorAccountLimitReached:        "client-error-account-limit-reached",
+	StatusErrorAccountAuthorizationFailed: "client-error-account-authorization-failed",
+	StatusErrorNotFetchable:               "client-error-not-fetchable",
+	StatusErrorInternal:                   "server-error-internal-error",
+	StatusErrorOperationNotSupported:      "server-error-operation-not-supported",
+	StatusErrorServiceUnavailable:         "server-error-service-unavailable",
+	StatusErrorVersionNotSupported:        "server-error-version-not-supported",
+	StatusErrorDevice:                     "server-error-device-error",
+	StatusErrorTemporary:                  "server-error-temporary-error",
+	StatusErrorNotAcceptingJobs:           "server-error-not-accepting-jobs",
+	StatusErrorBusy:                       "server-error-busy",
+	StatusErrorJobCanceled:                "server-error-job-canceled",
+	StatusErrorMultipleJobsNotSupported:   "server-error-multiple-document-jobs-not-supported",
+	StatusErrorPrinterIsDeactivated:       "server-error-printer-is-deactivated",
+	StatusErrorTooManyJobs:                "server-error-too-many-jobs",
+	StatusErrorTooManyDocuments:           "server-error-too-many-documents",
 }
