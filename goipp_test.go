@@ -71,10 +71,10 @@ func TestString(t *testing.T) {
 	// Here we test that T.String() doesn't crash for
 	// values out of range
 	for i := -1000; i <= 10000; i++ {
-		Op(i).String()
-		Status(i).String()
-		Type(i).String()
-		Tag(i).String()
+		_ = Op(i).String()
+		_ = Status(i).String()
+		_ = Type(i).String()
+		_ = Tag(i).String()
 	}
 }
 
