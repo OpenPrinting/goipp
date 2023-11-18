@@ -8,12 +8,51 @@ package goipp
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
+
+// errWriter implements io.Writer interface
+//
+// it accepts some first bytes and after that always returns an error
+type errWriter struct{ skip int }
+
+var _ = io.Writer(&errWriter{})
+
+func (ewr *errWriter) Write(data []byte) (int, error) {
+	if len(data) <= ewr.skip {
+		ewr.skip -= len(data)
+		return len(data), nil
+	}
+
+	n := ewr.skip
+	ewr.skip = 0
+
+	return n, errors.New("I/O error")
+}
+
+// errValue implements Value interface and returns
+// error from its encode() and decode() methods
+type errValue struct{}
+
+var _ = Value(errValue{})
+
+func (errValue) String() string { return "" }
+func (errValue) Type() Type     { return TypeInteger }
+
+func (errValue) encode() ([]byte, error) {
+	return nil, errors.New("encode error")
+}
+
+func (errValue) decode([]byte) (Value, error) {
+	return nil, errors.New("decode error")
+}
 
 // Check that err == nil
 func assertNoError(t *testing.T, err error) {
@@ -26,6 +65,18 @@ func assertNoError(t *testing.T, err error) {
 func assertWithError(t *testing.T, err error) {
 	if err == nil {
 		t.Errorf("Error expected")
+	}
+}
+
+// Check that err != nil and contains expected test
+func assertErrorIs(t *testing.T, err error, s string) {
+	if err == nil {
+		t.Errorf("Error expected")
+		return
+	}
+
+	if !strings.HasPrefix(err.Error(), s) {
+		t.Errorf("Error is %q, expected %q", err, s)
 	}
 }
 
@@ -254,8 +305,9 @@ func TestVersion(t *testing.T) {
 	}
 }
 
-// Test Message Encode, then Decode
-func TestEncodeDecode(t *testing.T) {
+// testEncodeDecodeMessage creates a quite complex message
+// for Encode/Decode test
+func testEncodeDecodeMessage() *Message {
 	m1 := &Message{
 		Version:   DefaultVersion,
 		Code:      0x1234,
@@ -322,6 +374,12 @@ func TestEncodeDecode(t *testing.T) {
 		TextWithLang{"привет", "ru"}))
 
 	//m1.Print(os.Stdout, false)
+	return m1
+}
+
+// Test Message Encode, then Decode
+func TestEncodeDecode(t *testing.T) {
+	m1 := testEncodeDecodeMessage()
 
 	data, err := m1.EncodeBytes()
 	assertNoError(t, err)
@@ -329,6 +387,114 @@ func TestEncodeDecode(t *testing.T) {
 	m2 := &Message{}
 	err = m2.DecodeBytes(data)
 	assertNoError(t, err)
+}
+
+// Test encode errors
+func TestEncodeErrors(t *testing.T) {
+	// Attribute without name
+	m := NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a := MakeAttribute("attr", TagInteger, Integer(123))
+	a.Name = ""
+	m.Operation.Add(a)
+	err := m.Encode(ioutil.Discard)
+	assertErrorIs(t, err, "Attribute without name")
+
+	// Attribute without value
+	m = NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a = MakeAttribute("attr", TagInteger, Integer(123))
+	a.Values = nil
+	m.Operation.Add(a)
+	err = m.Encode(ioutil.Discard)
+	assertErrorIs(t, err, "Attribute without value")
+
+	// Attribute name exceeds...
+	m = NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a = MakeAttribute("attr", TagInteger, Integer(123))
+	a.Name = strings.Repeat("x", 32767)
+	m.Operation.Add(a)
+	err = m.Encode(ioutil.Discard)
+	assertNoError(t, err)
+
+	m = NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a = MakeAttribute("attr", TagInteger, Integer(123))
+	a.Name = strings.Repeat("x", 32767+1)
+	m.Operation.Add(a)
+	err = m.Encode(ioutil.Discard)
+	assertErrorIs(t, err, "Attribute name exceeds 32767 bytes")
+
+	// Attribute value exceeds...
+	m = NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a = MakeAttribute("attr", TagText, String(strings.Repeat("x", 32767)))
+	m.Operation.Add(a)
+	err = m.Encode(ioutil.Discard)
+	assertNoError(t, err)
+
+	m = NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a = MakeAttribute("attr", TagText, String(strings.Repeat("x", 32767+1)))
+	m.Operation.Add(a)
+	err = m.Encode(ioutil.Discard)
+	assertErrorIs(t, err, "Attribute value exceeds 32767 bytes")
+
+	// Tag XXX cannot be used with value
+	m = NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a = MakeAttribute("attr", TagJobGroup, Integer(123))
+	m.Operation.Add(a)
+	err = m.Encode(ioutil.Discard)
+	assertErrorIs(t, err, "Tag job-attributes-tag cannot be used with value")
+
+	m = NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a = MakeAttribute("attr", TagMemberName, Integer(123))
+	m.Operation.Add(a)
+	err = m.Encode(ioutil.Discard)
+	assertErrorIs(t, err, "Tag memberAttrName cannot be used with value")
+
+	m = NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a = MakeAttribute("attr", TagEndCollection, Integer(123))
+	m.Operation.Add(a)
+	err = m.Encode(ioutil.Discard)
+	assertErrorIs(t, err, "Tag endCollection cannot be used with value")
+
+	// Collection member without name
+	m = NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a = MakeAttribute("attr", TagBeginCollection, Collection{
+		MakeAttribute("", TagInteger, Integer(123)),
+	})
+	m.Operation.Add(a)
+	err = m.Encode(ioutil.Discard)
+	assertErrorIs(t, err, "Collection member without name")
+
+	// Tag XXX: YYY value required, ZZZ present
+	m = NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a = MakeAttribute("attr", TagText, Integer(123))
+	m.Operation.Add(a)
+	err = m.Encode(ioutil.Discard)
+	assertErrorIs(t, err, "Tag textWithoutLanguage: String value required, Integer present")
+
+	// I/O error
+	m = testEncodeDecodeMessage()
+
+	data, err := m.EncodeBytes()
+	assertNoError(t, err)
+
+	for skip := 0; skip < len(data); skip++ {
+		err = m.Encode(&errWriter{skip})
+		assertErrorIs(t, err, "I/O error")
+	}
+
+	// encode error
+	m = NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a = MakeAttribute("attr", TagInteger, errValue{})
+	m.Operation.Add(a)
+	err = m.Encode(ioutil.Discard)
+	assertErrorIs(t, err, "encode error")
+
+	m = NewRequest(DefaultVersion, OpGetPrinterAttributes, 0x12345678)
+	a = MakeAttribute("attr", TagBeginCollection, Collection{
+		MakeAttribute("attr", TagInteger, errValue{}),
+	})
+	m.Operation.Add(a)
+	err = m.Encode(ioutil.Discard)
+	assertErrorIs(t, err, "encode error")
 }
 
 // Test message decoding

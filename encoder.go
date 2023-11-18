@@ -150,16 +150,11 @@ func (me *messageEncoder) encodeName(name string) error {
 func (me *messageEncoder) encodeValue(tag Tag, v Value) error {
 	// Check Value type vs the Tag
 	tagType := tag.Type()
-	switch tagType {
-	case TypeInvalid:
-		return fmt.Errorf("Tag %s cannot be used for value", tag)
-	case TypeVoid:
+	if tagType == TypeVoid {
 		v = Void{} // Ignore supplied value
-	default:
-		if tagType != v.Type() {
-			return fmt.Errorf("Tag %s: %s value required, %s present",
-				tag, tagType, v.Type())
-		}
+	} else if tagType != v.Type() {
+		return fmt.Errorf("Tag %s: %s value required, %s present",
+			tag, tagType, v.Type())
 	}
 
 	// Encode the value
