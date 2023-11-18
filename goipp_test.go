@@ -496,6 +496,103 @@ func TestEncodeErrors(t *testing.T) {
 	assertErrorIs(t, err, "encode error")
 }
 
+// Test decode errors
+func TestDecodeErrors(t *testing.T) {
+	var d []byte
+	var err error
+	var m = &Message{}
+
+	hdr := []byte{
+		0x01, 0x01, // IPP version
+		0x00, 0x02, // Print-Job operation
+		0x01, 0x02, 0x03, 0x04, // Request ID
+	}
+
+	body := []byte{}
+
+	// Message truncated
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagInteger),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x04, // Value length + value
+		0x00, 0x00, 0x54, 0x56,
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "Message truncated at")
+
+	d, err = testEncodeDecodeMessage().EncodeBytes()
+	assertNoError(t, err)
+
+	for i := 0; i < len(d); i++ {
+		err = m.DecodeBytes(d[:i])
+		assertErrorIs(t, err, "Message truncated at")
+	}
+
+	d = goodMessage1
+	for i := 0; i < len(d); i++ {
+		err = m.DecodeBytes(d[:i])
+		assertErrorIs(t, err, "Message truncated at")
+	}
+
+	// Invalid tag 0
+	d = append(hdr, 0)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "Invalid tag 0 at 0x8")
+
+	// Attribute without a group
+	body = []byte{
+		uint8(TagInteger),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x04, // Value length + value
+		0x00, 0x00, 0x54, 0x56,
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, uint8(TagJobGroup))
+	d = append(d, body...)
+	err = m.DecodeBytes(d)
+	assertNoError(t, err)
+
+	err = m.DecodeBytes(append(hdr, body...))
+	assertErrorIs(t, err, "Attribute without a group at")
+
+	// Additional value without preceding attribute
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagInteger),
+		0x00, 0x00, // No name
+		0x00, 0x04, // Value length + value
+		0x00, 0x00, 0x54, 0x56,
+		uint8(TagEnd),
+	}
+
+	err = m.DecodeBytes(append(hdr, body...))
+	assertErrorIs(t, err, "Additional value without preceding attribute")
+
+	// "Unexpected tag XXX"
+	for _, tag := range []Tag{TagMemberName, TagEndCollection} {
+		body = []byte{
+			uint8(TagJobGroup),
+			uint8(TagInteger),
+			0x00, 0x04, // Name length + name
+			'a', 't', 't', 'r',
+			0x00, 0x04, // Value length + value
+			0x00, 0x00, 0x54, 0x56,
+		}
+
+		d = append(hdr, body...)
+		d = append(d, uint8(tag))
+		d = append(d, uint8(TagEnd))
+		err = m.DecodeBytes(d)
+		assertErrorIs(t, err, "Unexpected tag")
+	}
+}
+
 // Test message decoding
 func testDecode(t *testing.T, data []byte, opt DecoderOptions,
 	mustFail, mustEncode bool) {
