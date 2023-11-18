@@ -308,73 +308,72 @@ func TestVersion(t *testing.T) {
 // testEncodeDecodeMessage creates a quite complex message
 // for Encode/Decode test
 func testEncodeDecodeMessage() *Message {
-	m1 := &Message{
+	m := &Message{
 		Version:   DefaultVersion,
 		Code:      0x1234,
 		RequestID: 0x87654321,
 	}
 
 	// Populate all groups
-	m1.Operation.Add(MakeAttribute("grp_operation", TagInteger,
+	m.Operation.Add(MakeAttribute("grp_operation", TagInteger,
 		Integer(1)))
-	m1.Job.Add(MakeAttribute("grp_job", TagInteger,
+	m.Job.Add(MakeAttribute("grp_job", TagInteger,
 		Integer(2)))
-	m1.Printer.Add(MakeAttribute("grp_printer", TagInteger,
+	m.Printer.Add(MakeAttribute("grp_printer", TagInteger,
 		Integer(3)))
-	m1.Unsupported.Add(MakeAttribute("grp_unsupported", TagInteger,
+	m.Unsupported.Add(MakeAttribute("grp_unsupported", TagInteger,
 		Integer(4)))
-	m1.Subscription.Add(MakeAttribute("grp_subscription", TagInteger,
+	m.Subscription.Add(MakeAttribute("grp_subscription", TagInteger,
 		Integer(5)))
-	m1.EventNotification.Add(MakeAttribute("grp_eventnotification", TagInteger,
+	m.EventNotification.Add(MakeAttribute("grp_eventnotification", TagInteger,
 		Integer(6)))
-	m1.Resource.Add(MakeAttribute("grp_resource", TagInteger,
+	m.Resource.Add(MakeAttribute("grp_resource", TagInteger,
 		Integer(7)))
-	m1.Document.Add(MakeAttribute("grp_document", TagInteger,
+	m.Document.Add(MakeAttribute("grp_document", TagInteger,
 		Integer(8)))
-	m1.System.Add(MakeAttribute("grp_system", TagInteger,
+	m.System.Add(MakeAttribute("grp_system", TagInteger,
 		Integer(9)))
-	m1.Future11.Add(MakeAttribute("grp_future11", TagInteger,
+	m.Future11.Add(MakeAttribute("grp_future11", TagInteger,
 		Integer(10)))
-	m1.Future12.Add(MakeAttribute("grp_future12", TagInteger,
+	m.Future12.Add(MakeAttribute("grp_future12", TagInteger,
 		Integer(11)))
-	m1.Future13.Add(MakeAttribute("grp_future13", TagInteger,
+	m.Future13.Add(MakeAttribute("grp_future13", TagInteger,
 		Integer(12)))
-	m1.Future14.Add(MakeAttribute("grp_future14", TagInteger,
+	m.Future14.Add(MakeAttribute("grp_future14", TagInteger,
 		Integer(13)))
-	m1.Future15.Add(MakeAttribute("grp_future15", TagInteger,
+	m.Future15.Add(MakeAttribute("grp_future15", TagInteger,
 		Integer(14)))
 
 	// Use all possible attribute types
-	m1.Operation.Add(MakeAttribute("type_integer", TagInteger, Integer(123)))
+	m.Operation.Add(MakeAttribute("type_integer", TagInteger, Integer(123)))
 
-	m1.Operation.Add(MakeAttribute("type_boolean_t", TagBoolean, Boolean(true)))
-	m1.Operation.Add(MakeAttribute("type_boolean_f", TagBoolean, Boolean(false)))
+	m.Operation.Add(MakeAttribute("type_boolean_t", TagBoolean, Boolean(true)))
+	m.Operation.Add(MakeAttribute("type_boolean_f", TagBoolean, Boolean(false)))
 
-	m1.Operation.Add(MakeAttribute("type_void", TagUnsupportedValue, Void{}))
+	m.Operation.Add(MakeAttribute("type_void", TagUnsupportedValue, Void{}))
 
-	m1.Operation.Add(MakeAttribute("type_string_1", TagText, String("hello")))
-	m1.Operation.Add(MakeAttribute("type_string_2", TagText, String("")))
+	m.Operation.Add(MakeAttribute("type_string_1", TagText, String("hello")))
+	m.Operation.Add(MakeAttribute("type_string_2", TagText, String("")))
 
-	m1.Operation.Add(MakeAttribute("type_time_1", TagDateTime,
+	m.Operation.Add(MakeAttribute("type_time_1", TagDateTime,
 		parseTime("01/02 03:04:05PM '06 -0700")))
-	m1.Operation.Add(MakeAttribute("type_time_2", TagDateTime,
+	m.Operation.Add(MakeAttribute("type_time_2", TagDateTime,
 		parseTime("01/02 03:04:05PM '06 +0700")))
 
-	m1.Operation.Add(MakeAttribute("type_resolution_1", TagResolution,
+	m.Operation.Add(MakeAttribute("type_resolution_1", TagResolution,
 		Resolution{123, 456, UnitsDpi}))
-	m1.Operation.Add(MakeAttribute("type_resolution_2", TagResolution,
+	m.Operation.Add(MakeAttribute("type_resolution_2", TagResolution,
 		Resolution{78, 90, UnitsDpcm}))
 
-	m1.Operation.Add(MakeAttribute("type_range", TagRange,
+	m.Operation.Add(MakeAttribute("type_range", TagRange,
 		Range{100, 1000}))
 
-	m1.Operation.Add(MakeAttribute("type_textlang_1", TagTextLang,
+	m.Operation.Add(MakeAttribute("type_textlang_1", TagTextLang,
 		TextWithLang{"hello", "en"}))
-	m1.Operation.Add(MakeAttribute("type_textlang_1", TagTextLang,
+	m.Operation.Add(MakeAttribute("type_textlang_1", TagTextLang,
 		TextWithLang{"привет", "ru"}))
 
-	//m1.Print(os.Stdout, false)
-	return m1
+	return m
 }
 
 // Test Message Encode, then Decode
