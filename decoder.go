@@ -221,12 +221,12 @@ func (md *messageDecoder) decodeCollection() (Collection, error) {
 
 		default:
 			if md.opt.EnableWorkarounds &&
+				memberName == "" && attr.Name != "" {
 				// Workaround for: Pantum M7300FDW
 				//
 				// This device violates collection encoding rules.
 				// Instead of using TagMemberName, it uses named
 				// attributes within the collection
-				memberName == "" && attr.Name != "" {
 				memberName = attr.Name
 			}
 
