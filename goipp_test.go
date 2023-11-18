@@ -8,6 +8,7 @@ package goipp
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"reflect"
 	"testing"
@@ -64,6 +65,16 @@ func assertDecodeErr(t *testing.T, data []byte, val Value) {
 	if err == nil {
 		t.Errorf("decode: expected error")
 	}
+}
+
+// parseTime parses time given in time.Layout format.
+// this function panics if time cannot be parsed
+func parseTime(s string) Time {
+	t, err := time.Parse(time.Layout, s)
+	if err != nil {
+		panic(fmt.Sprintf("parseTime(%q): %s", s, err))
+	}
+	return Time{t}
 }
 
 // Test String() methods for various types
@@ -241,6 +252,83 @@ func TestVersion(t *testing.T) {
 	if v.String() != "1.2" {
 		t.Errorf("(Version)String() test failed")
 	}
+}
+
+// Test Message Encode, then Decode
+func TestEncodeDecode(t *testing.T) {
+	m1 := &Message{
+		Version:   DefaultVersion,
+		Code:      0x1234,
+		RequestID: 0x87654321,
+	}
+
+	// Populate all groups
+	m1.Operation.Add(MakeAttribute("grp_operation", TagInteger,
+		Integer(1)))
+	m1.Job.Add(MakeAttribute("grp_job", TagInteger,
+		Integer(2)))
+	m1.Printer.Add(MakeAttribute("grp_printer", TagInteger,
+		Integer(3)))
+	m1.Unsupported.Add(MakeAttribute("grp_unsupported", TagInteger,
+		Integer(4)))
+	m1.Subscription.Add(MakeAttribute("grp_subscription", TagInteger,
+		Integer(5)))
+	m1.EventNotification.Add(MakeAttribute("grp_eventnotification", TagInteger,
+		Integer(6)))
+	m1.Resource.Add(MakeAttribute("grp_resource", TagInteger,
+		Integer(7)))
+	m1.Document.Add(MakeAttribute("grp_document", TagInteger,
+		Integer(8)))
+	m1.System.Add(MakeAttribute("grp_system", TagInteger,
+		Integer(9)))
+	m1.Future11.Add(MakeAttribute("grp_future11", TagInteger,
+		Integer(10)))
+	m1.Future12.Add(MakeAttribute("grp_future12", TagInteger,
+		Integer(11)))
+	m1.Future13.Add(MakeAttribute("grp_future13", TagInteger,
+		Integer(12)))
+	m1.Future14.Add(MakeAttribute("grp_future14", TagInteger,
+		Integer(13)))
+	m1.Future15.Add(MakeAttribute("grp_future15", TagInteger,
+		Integer(14)))
+
+	// Use all possible attribute types
+	m1.Operation.Add(MakeAttribute("type_integer", TagInteger, Integer(123)))
+
+	m1.Operation.Add(MakeAttribute("type_boolean_t", TagBoolean, Boolean(true)))
+	m1.Operation.Add(MakeAttribute("type_boolean_f", TagBoolean, Boolean(false)))
+
+	m1.Operation.Add(MakeAttribute("type_void", TagUnsupportedValue, Void{}))
+
+	m1.Operation.Add(MakeAttribute("type_string_1", TagText, String("hello")))
+	m1.Operation.Add(MakeAttribute("type_string_2", TagText, String("")))
+
+	m1.Operation.Add(MakeAttribute("type_time_1", TagDateTime,
+		parseTime("01/02 03:04:05PM '06 -0700")))
+	m1.Operation.Add(MakeAttribute("type_time_2", TagDateTime,
+		parseTime("01/02 03:04:05PM '06 +0700")))
+
+	m1.Operation.Add(MakeAttribute("type_resolution_1", TagResolution,
+		Resolution{123, 456, UnitsDpi}))
+	m1.Operation.Add(MakeAttribute("type_resolution_2", TagResolution,
+		Resolution{78, 90, UnitsDpcm}))
+
+	m1.Operation.Add(MakeAttribute("type_range", TagRange,
+		Range{100, 1000}))
+
+	m1.Operation.Add(MakeAttribute("type_textlang_1", TagTextLang,
+		TextWithLang{"hello", "en"}))
+	m1.Operation.Add(MakeAttribute("type_textlang_1", TagTextLang,
+		TextWithLang{"привет", "ru"}))
+
+	//m1.Print(os.Stdout, false)
+
+	data, err := m1.EncodeBytes()
+	assertNoError(t, err)
+
+	m2 := &Message{}
+	err = m2.DecodeBytes(data)
+	assertNoError(t, err)
 }
 
 // Test message decoding
