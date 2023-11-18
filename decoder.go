@@ -68,6 +68,10 @@ func (md *messageDecoder) decode(m *Message) error {
 		var tag Tag
 		tag, err = md.decodeTag()
 
+		if err != nil {
+			break
+		}
+
 		if tag.IsDelimiter() {
 			prev = nil
 		}
@@ -377,8 +381,11 @@ func (md *messageDecoder) read(data []byte) error {
 		if n > 0 {
 			md.cnt += n
 			data = data[n:]
-		} else if err != nil {
+		} else {
 			md.off = md.cnt
+			if err == nil || err == io.EOF {
+				err = errors.New("Message truncated")
+			}
 			return err
 		}
 
