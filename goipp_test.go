@@ -591,6 +591,158 @@ func TestDecodeErrors(t *testing.T) {
 		err = m.DecodeBytes(d)
 		assertErrorIs(t, err, "Unexpected tag")
 	}
+
+	// Collection: unexpected tag XXX
+	for tag := TagZero; tag.IsDelimiter(); tag++ {
+		body = []byte{
+			uint8(TagJobGroup),
+
+			uint8(TagBeginCollection),
+			0x00, 0x0a, // Name length + name
+			'c', 'o', 'l', 'l', 'e', 'c', 't', 'i', 'o', 'n',
+			0x00, 0x00, // No value
+
+			uint8(TagMemberName),
+			0x00, 0x00, // No name
+			0x00, 0x06, // Value length + value
+			'm', 'e', 'm', 'b', 'e', 'r',
+
+			uint8(TagInteger),
+			0x00, 0x00, // No name
+			0x00, 0x04, // Value length + value
+			0x00, 0x00, 0x54, 0x56,
+
+			uint8(tag),
+
+			uint8(TagEndCollection),
+			0x00, 0x00, // No name
+			0x00, 0x00, // No value
+		}
+
+		d = append(hdr, body...)
+		d = append(d, uint8(TagEnd))
+		err = m.DecodeBytes(d)
+		assertErrorIs(t, err, "Collection: unexpected tag")
+	}
+
+	// Collection: unexpected endCollection, expected value tag
+	body = []byte{
+		uint8(TagJobGroup),
+
+		uint8(TagBeginCollection),
+		0x00, 0x0a, // Name length + name
+		'c', 'o', 'l', 'l', 'e', 'c', 't', 'i', 'o', 'n',
+		0x00, 0x00, // No value
+
+		uint8(TagMemberName),
+		0x00, 0x00, // No name
+		0x00, 0x06, // Value length + value
+		'm', 'e', 'm', 'b', 'e', 'r',
+
+		uint8(TagEndCollection),
+		0x00, 0x00, // No name
+		0x00, 0x00, // No value
+
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "Collection: unexpected endCollection, expected value tag")
+
+	// Collection: unexpected memberAttrName, expected value tag
+	body = []byte{
+		uint8(TagJobGroup),
+
+		uint8(TagBeginCollection),
+		0x00, 0x0a, // Name length + name
+		'c', 'o', 'l', 'l', 'e', 'c', 't', 'i', 'o', 'n',
+		0x00, 0x00, // No value
+
+		uint8(TagMemberName),
+		0x00, 0x00, // No name
+		0x00, 0x07, // Value length + value
+		'm', 'e', 'm', 'b', 'e', 'r', '1',
+
+		uint8(TagMemberName),
+		0x00, 0x00, // No name
+		0x00, 0x07, // Value length + value
+		'm', 'e', 'm', 'b', 'e', 'r', '2',
+
+		uint8(TagInteger),
+		0x00, 0x00, // No name
+		0x00, 0x04, // Value length + value
+		0x00, 0x00, 0x54, 0x56,
+
+		uint8(TagEndCollection),
+		0x00, 0x00, // No name
+		0x00, 0x00, // No value
+
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "Collection: unexpected memberAttrName, expected value tag")
+
+	// Collection: memberAttrName value is empty
+	body = []byte{
+		uint8(TagJobGroup),
+
+		uint8(TagBeginCollection),
+		0x00, 0x0a, // Name length + name
+		'c', 'o', 'l', 'l', 'e', 'c', 't', 'i', 'o', 'n',
+		0x00, 0x00, // No value
+
+		uint8(TagMemberName),
+		0x00, 0x00, // No name
+		0x00, 0x00, // No value
+
+		uint8(TagInteger),
+		0x00, 0x00, // No name
+		0x00, 0x04, // Value length + value
+		0x00, 0x00, 0x54, 0x56,
+
+		uint8(TagEndCollection),
+		0x00, 0x00, // No name
+		0x00, 0x00, // No value
+
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "Collection: memberAttrName value is empty")
+
+	// Collection: unexpected integer, expected memberAttrName
+	body = []byte{
+		uint8(TagJobGroup),
+
+		uint8(TagBeginCollection),
+		0x00, 0x0a, // Name length + name
+		'c', 'o', 'l', 'l', 'e', 'c', 't', 'i', 'o', 'n',
+		0x00, 0x00, // No value
+
+		//uint8(TagMemberName),
+		//0x00, 0x00, // No name
+		//0x00, 0x06, // Value length + value
+		//'m', 'e', 'm', 'b', 'e', 'r',
+
+		uint8(TagInteger),
+		0x00, 0x00, // No name
+		0x00, 0x04, // Value length + value
+		0x00, 0x00, 0x54, 0x56,
+
+		uint8(TagEndCollection),
+		0x00, 0x00, // No name
+		0x00, 0x00, // No value
+
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "Collection: unexpected integer, expected memberAttrName")
 }
 
 // Test message decoding
