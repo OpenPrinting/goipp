@@ -475,7 +475,7 @@ func (TextWithLang) decode(data []byte) (Value, error) {
 
 	// Unpack language length
 	if len(data) < 2 {
-		goto ERROR
+		return nil, errors.New("truncated language length")
 	}
 
 	langLen = int(binary.BigEndian.Uint16(data[0:2]))
@@ -483,7 +483,7 @@ func (TextWithLang) decode(data []byte) (Value, error) {
 
 	// Unpack language value
 	if len(data) < langLen {
-		goto ERROR
+		return nil, errors.New("truncated language name")
 	}
 
 	lang = string(data[:langLen])
@@ -491,7 +491,7 @@ func (TextWithLang) decode(data []byte) (Value, error) {
 
 	// Unpack text length
 	if len(data) < 2 {
-		goto ERROR
+		return nil, errors.New("truncated text length")
 	}
 
 	textLen = int(binary.BigEndian.Uint16(data[0:2]))
@@ -499,7 +499,7 @@ func (TextWithLang) decode(data []byte) (Value, error) {
 
 	// Unpack text value
 	if len(data) < textLen {
-		goto ERROR
+		return nil, errors.New("truncated text string")
 	}
 
 	text = string(data[:textLen])
@@ -507,14 +507,12 @@ func (TextWithLang) decode(data []byte) (Value, error) {
 
 	// We must have consumed all bytes at this point
 	if len(data) != 0 {
-		goto ERROR
+		return nil, fmt.Errorf("extra %d bytes at the end of value",
+			len(data))
 	}
 
 	// Return a value
 	return TextWithLang{Lang: lang, Text: text}, nil
-
-ERROR:
-	return nil, errors.New("invalid data format")
 }
 
 // Binary represents a raw binary Value

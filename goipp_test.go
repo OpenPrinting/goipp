@@ -880,6 +880,91 @@ func TestDecodeValueErrors(t *testing.T) {
 	d = append(hdr, body...)
 	err = m.DecodeBytes(d)
 	assertErrorIs(t, err, "rangeOfInteger: value must be 8 bytes")
+
+	// textWithLanguage: truncated language length
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagTextLang),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x01, // Value length
+		0x00,
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "textWithLanguage: truncated language length")
+
+	// textWithLanguage: truncated language name
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagTextLang),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x03, // Value length
+		0x00, 0x02, // Language length
+		'e',
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "textWithLanguage: truncated language name")
+
+	// textWithLanguage: truncated text length
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagTextLang),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x05, // Value length
+		0x00, 0x02, // Language length
+		'e', 'n', // Language name
+		0x00, // Text length
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "textWithLanguage: truncated text length")
+
+	// textWithLanguage: truncated text string
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagTextLang),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x09, // Value length
+		0x00, 0x02, // Language length
+		'e', 'n', // Language name
+		0x00, 0x05, // Text length
+		'h', 'e', 'l',
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "textWithLanguage: truncated text string")
+
+	// textWithLanguage: extra 2 bytes at the end of value
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagTextLang),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x0d, // Value length
+		0x00, 0x02, // Language length
+		'e', 'n', // Language name
+		0x00, 0x05, // Text length
+		'h', 'e', 'l', 'l', 'o', // Test string
+		'?', '?', // Extra 2 bytes
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "textWithLanguage: extra 2 bytes at the end of value")
 }
 
 // Test message decoding
