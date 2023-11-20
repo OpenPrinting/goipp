@@ -256,31 +256,49 @@ func (v Time) encode() ([]byte, error) {
 // Decode Time Value from wire format
 func (Time) decode(data []byte) (Value, error) {
 	// Check size
-	if len(data) != 9 && len(data) != 11 {
-		return nil, errors.New("value must be 9 or 11 bytes")
+	if len(data) != 11 {
+		return nil, errors.New("value must be 11 bytes")
+	}
+
+	// Validate ranges
+	var err error
+	switch {
+	case data[2] < 1 || data[2] > 12:
+		err = fmt.Errorf("bad month %d", data[2])
+	case data[3] < 1 || data[3] > 31:
+		err = fmt.Errorf("bad day %d", data[3])
+	case data[4] > 23:
+		err = fmt.Errorf("bad hours %d", data[4])
+	case data[5] > 59:
+		err = fmt.Errorf("bad minutes %d", data[5])
+	case data[6] > 60:
+		err = fmt.Errorf("bad seconds %d", data[6])
+	case data[7] > 9:
+		err = fmt.Errorf("bad deciseconds %d", data[7])
+	case data[8] != '+' && data[8] != '-':
+		return nil, errors.New("bad UTC sign")
+	case data[9] > 11:
+		err = fmt.Errorf("bad UTC hours %d", data[9])
+	case data[10] > 59:
+		err = fmt.Errorf("bad UTC minutes %d", data[10])
+	}
+
+	if err != nil {
+		return Time{}, err
 	}
 
 	// Decode time zone
-	var l *time.Location
-	switch {
-	case len(data) == 9:
-		l = time.UTC
-	case data[8] == '+', data[8] == '-':
-		name := fmt.Sprintf("UTC%c%d", data[8], data[9])
-		if data[10] != 0 {
-			name += fmt.Sprintf(":%d", data[10])
-		}
-
-		off := 3600*int(data[9]) + 60*int(data[10])
-		if data[8] == '-' {
-			off = -off
-		}
-
-		l = time.FixedZone(name, off)
-
-	default:
-		return nil, errors.New("invalid data format")
+	tzName := fmt.Sprintf("UTC%c%d", data[8], data[9])
+	if data[10] != 0 {
+		tzName += fmt.Sprintf(":%d", data[10])
 	}
+
+	tzOff := 3600*int(data[9]) + 60*int(data[10])
+	if data[8] == '-' {
+		tzOff = -tzOff
+	}
+
+	tz := time.FixedZone(tzName, tzOff)
 
 	// Decode time
 	t := time.Date(
@@ -291,7 +309,7 @@ func (Time) decode(data []byte) (Value, error) {
 		int(data[5]),                            // min
 		int(data[6]),                            // sec
 		int(data[7])*100000000,                  // nsec
-		l,                                       // time zone
+		tz,                                      // time zone
 	)
 
 	return Time{t}, nil
