@@ -71,7 +71,9 @@ func assertWithError(t *testing.T, err error) {
 // Check that err != nil and contains expected test
 func assertErrorIs(t *testing.T, err error, s string) {
 	if err == nil {
-		t.Errorf("Error expected")
+		if s != "" {
+			t.Errorf("Error expected")
+		}
 		return
 	}
 
@@ -743,6 +745,141 @@ func TestDecodeErrors(t *testing.T) {
 	d = append(hdr, body...)
 	err = m.DecodeBytes(d)
 	assertErrorIs(t, err, "Collection: unexpected integer, expected memberAttrName")
+}
+
+// Test errors in decoding values
+func TestDecodeValueErrors(t *testing.T) {
+	var d []byte
+	var err error
+	var m = &Message{}
+
+	hdr := []byte{
+		0x01, 0x01, // IPP version
+		0x00, 0x02, // Print-Job operation
+		0x01, 0x02, 0x03, 0x04, // Request ID
+	}
+
+	body := []byte{}
+
+	// integer: value must be 4 bytes
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagInteger),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x03, // Value length + value
+		0x00, 0x54, 0x56,
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "integer: value must be 4 bytes")
+
+	// boolean: value must be 1 byte
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagBoolean),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x03, // Value length + value
+		0x00, 0x54, 0x56,
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "boolean: value must be 1 byte")
+
+	// dateTime: value must be 11 bytes
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagDateTime),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x03, // Value length + value
+		0x00, 0x54, 0x56,
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "dateTime: value must be 11 bytes")
+
+	// dateTime: bad XXX
+	var datetest = []struct {
+		in  []byte
+		err string
+	}{
+		//      year        month day   hour  min   sec   s/10
+		{[]byte{0x07, 0xe7, 0x02, 0x15, 0x11, 0x23, 0x32, 0x05, '+', 0x04, 0x00},
+			""},
+		{[]byte{0x07, 0xe7, 0xff, 0x15, 0x11, 0x23, 0x32, 0x05, '+', 0x04, 0x00},
+			"dateTime: bad month 255"},
+		{[]byte{0x07, 0xe7, 0x02, 0xff, 0x11, 0x23, 0x32, 0x05, '+', 0x04, 0x00},
+			"dateTime: bad day 255"},
+		{[]byte{0x07, 0xe7, 0x02, 0x15, 0xff, 0x23, 0x32, 0x05, '+', 0x04, 0x00},
+			"dateTime: bad hours 255"},
+		{[]byte{0x07, 0xe7, 0x02, 0x15, 0x11, 0xff, 0x32, 0x05, '+', 0x04, 0x00},
+			"dateTime: bad minutes 255"},
+		{[]byte{0x07, 0xe7, 0x02, 0x15, 0x11, 0x23, 0xff, 0x05, '+', 0x04, 0x00},
+			"dateTime: bad seconds 255"},
+		{[]byte{0x07, 0xe7, 0x02, 0x15, 0x11, 0x23, 0x32, 0xff, '+', 0x04, 0x00},
+			"dateTime: bad deciseconds 255"},
+		{[]byte{0x07, 0xe7, 0x02, 0x15, 0x11, 0x23, 0x32, 0x05, '?', 0x04, 0x00},
+			"dateTime: bad UTC sign"},
+		{[]byte{0x07, 0xe7, 0x02, 0x15, 0x11, 0x23, 0x32, 0x05, '-', 0xff, 0x00},
+			"dateTime: bad UTC hours 255"},
+		{[]byte{0x07, 0xe7, 0x02, 0x15, 0x11, 0x23, 0x32, 0x05, '-', 0x04, 0xff},
+			"dateTime: bad UTC minutes 255"},
+	}
+
+	for _, test := range datetest {
+		body = []byte{
+			uint8(TagJobGroup),
+			uint8(TagDateTime),
+			0x00, 0x04, // Name length + name
+			'a', 't', 't', 'r',
+			0x00, 0x0b, // Value length + value
+		}
+
+		d = append(hdr, body...)
+		d = append(d, test.in...)
+		d = append(d, uint8(TagEnd))
+
+		err = m.DecodeBytes(d)
+		assertErrorIs(t, err, test.err)
+	}
+
+	// resolution: value must be 9 bytes
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagResolution),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x03, // Value length + value
+		0x00, 0x54, 0x56,
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "resolution: value must be 9 bytes ")
+
+	// rangeOfInteger: value must be 8 bytes
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagRange),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x03, // Value length + value
+		0x00, 0x54, 0x56,
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "rangeOfInteger: value must be 8 bytes")
 }
 
 // Test message decoding
