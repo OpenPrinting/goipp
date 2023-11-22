@@ -361,6 +361,8 @@ func testEncodeDecodeMessage() *Message {
 		parseTime("01/02 03:04:05PM '06 -0700")))
 	m.Operation.Add(MakeAttribute("type_time_2", TagDateTime,
 		parseTime("01/02 03:04:05PM '06 +0700")))
+	m.Operation.Add(MakeAttribute("type_time_3", TagDateTime,
+		parseTime("01/02 03:04:05PM '06 -0730")))
 
 	m.Operation.Add(MakeAttribute("type_resolution_1", TagResolution,
 		Resolution{123, 456, UnitsDpi}))
