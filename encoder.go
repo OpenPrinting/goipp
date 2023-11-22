@@ -88,9 +88,19 @@ func (me *messageEncoder) encodeAttr(attr Attribute, checkTag bool) error {
 			if tag.IsDelimiter() || tag == TagMemberName || tag == TagEndCollection {
 				return fmt.Errorf("Tag %s cannot be used with value", tag)
 			}
+
+			if tag&0x80000000 != 0 {
+				return fmt.Errorf("Tag %s exceeds extension tag range", tag)
+			}
 		}
 
-		err := me.encodeTag(tag)
+		var err error
+		if tag >= 0x100 {
+			err = me.encodeTag(TagExtension)
+		} else {
+			err = me.encodeTag(tag)
+		}
+
 		if err != nil {
 			return err
 		}
@@ -158,17 +168,29 @@ func (me *messageEncoder) encodeValue(tag Tag, v Value) error {
 	}
 
 	// Encode the value
+	//
+	// If tag >= 0x100, tag is replaced with TagExtension, and actual
+	// tag value prepended to the data bytes. See RFC 8010, 3.5.2 for
+	// details
 	data, err := v.encode()
 	if err != nil {
 		return err
 	}
 
-	if len(data) > math.MaxInt16 {
+	valueLen := len(data)
+	if tag >= 0x100 {
+		valueLen += 4 // Prepend extension tag value to the data
+	}
+
+	if valueLen > math.MaxInt16 {
 		return fmt.Errorf("Attribute value exceeds %d bytes",
 			math.MaxInt16)
 	}
 
-	err = me.encodeU16(uint16(len(data)))
+	err = me.encodeU16(uint16(valueLen))
+	if err == nil && tag >= 0x100 {
+		err = me.encodeU32(uint32(tag))
+	}
 	if err == nil {
 		err = me.write(data)
 	}

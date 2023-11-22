@@ -967,6 +967,75 @@ func TestDecodeValueErrors(t *testing.T) {
 	assertErrorIs(t, err, "textWithLanguage: extra 2 bytes at the end of value")
 }
 
+// Test TagExtension
+func TestTagExtension(t *testing.T) {
+	// Ensure extension tag encodes and decodes well
+	m1 := NewResponse(DefaultVersion, StatusOk, 0x12345678)
+	m1.Operation.Add(MakeAttribute("attr", 0x12345678,
+		Binary{1, 2, 3, 4, 5}))
+
+	data, err := m1.EncodeBytes()
+	assertNoError(t, err)
+
+	m2 := Message{}
+	err = m2.DecodeBytes(data)
+	assertNoError(t, err)
+
+	if !m1.Equal(m2) {
+		t.Errorf("Message is not the same after encoding and decoding")
+	}
+
+	// Tag can't exceed 0x7fffffff, check that encoder validates it
+	m1 = NewResponse(DefaultVersion, StatusOk, 0x12345678)
+	m1.Operation.Add(MakeAttribute("attr", 0x81234567,
+		Binary{1, 2, 3, 4, 5}))
+
+	_, err = m1.EncodeBytes()
+	assertErrorIs(t, err, "Tag 0x81234567 exceeds extension tag range")
+
+	// Now prepare to decoder tests
+	var d []byte
+	var m = &Message{}
+
+	hdr := []byte{
+		0x01, 0x01, // IPP version
+		0x00, 0x02, // Print-Job operation
+		0x01, 0x02, 0x03, 0x04, // Request ID
+	}
+
+	body := []byte{}
+
+	// Extension tag truncated
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagExtension),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x03, // Value length + value
+		0x00, 0x54, 0x56,
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "Extension tag truncated")
+
+	// Extension tag out of range
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagExtension),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x08, // Value length + value
+		0xff, 0xff, 0xff, 0xff, 0, 0, 0, 0,
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertErrorIs(t, err, "Extension tag out of range")
+}
+
 // Test message decoding
 func testDecode(t *testing.T, data []byte, opt DecoderOptions,
 	mustFail, mustEncode bool) {
