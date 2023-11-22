@@ -139,6 +139,7 @@ func TestString(t *testing.T) {
 		_ = Status(i).String()
 		_ = Type(i).String()
 		_ = Tag(i).String()
+		_ = Units(i).String()
 	}
 }
 
@@ -293,6 +294,31 @@ func TestAttributesEqual(t *testing.T) {
 	attrs2[1] = attr3
 	if attrs1.Equal(attrs2) {
 		t.Errorf("(Attributes) Equal(): failed attributes of different value")
+	}
+}
+
+// Test (Message) Equal()
+func TestMessageEqual(t *testing.T) {
+	var m1, m2 Message
+	// Test: Version, Code, RequestID mismatch makes messages non-equal
+	m1 = Message{Version: 0, Code: 1, RequestID: 2}
+
+	m2 = m1
+	m2.Version++
+	if m1.Equal(m2) {
+		t.Errorf("(Message) Equal(): ignores difference in Version")
+	}
+
+	m2 = m1
+	m2.Code++
+	if m1.Equal(m2) {
+		t.Errorf("(Message) Equal(): ignores difference in Code")
+	}
+
+	m2 = m1
+	m2.RequestID++
+	if m1.Equal(m2) {
+		t.Errorf("(Message) Equal(): ignores difference in RequestID")
 	}
 }
 
