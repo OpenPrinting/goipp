@@ -101,22 +101,20 @@ func (m Message) Equal(m2 Message) bool {
 		return false
 	}
 
-	groups1 := m.attrGroups()
-	groups2 := m2.attrGroups()
-
-	if len(groups1) != len(groups2) {
-		return false
-	}
-
-	for i, grp1 := range groups1 {
-		grp2 := groups2[i]
-
-		if grp1.tag != grp2.tag || !grp1.attrs.Equal(grp2.attrs) {
-			return false
-		}
-	}
-
-	return true
+	return m.Operation.Equal(m2.Operation) &&
+		m.Job.Equal(m2.Job) &&
+		m.Printer.Equal(m2.Printer) &&
+		m.Unsupported.Equal(m2.Unsupported) &&
+		m.Subscription.Equal(m2.Subscription) &&
+		m.EventNotification.Equal(m2.EventNotification) &&
+		m.Resource.Equal(m2.Resource) &&
+		m.Document.Equal(m2.Document) &&
+		m.System.Equal(m2.System) &&
+		m.Future11.Equal(m2.Future11) &&
+		m.Future12.Equal(m2.Future12) &&
+		m.Future13.Equal(m2.Future13) &&
+		m.Future14.Equal(m2.Future14) &&
+		m.Future15.Equal(m2.Future15)
 }
 
 // Reset the message into initial state
