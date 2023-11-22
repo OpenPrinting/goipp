@@ -126,7 +126,11 @@ func (tag Tag) String() string {
 		}
 	}
 
-	return fmt.Sprintf("0x%4.4x", uint(tag))
+	if tag < 0x100 {
+		return fmt.Sprintf("0x%2.2x", uint(tag))
+	}
+
+	return fmt.Sprintf("0x%8.8x", uint(tag))
 }
 
 var tagNames = [...]string{
