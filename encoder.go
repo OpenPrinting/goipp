@@ -42,9 +42,9 @@ func (me *messageEncoder) encode(m *Message) error {
 
 	// Encode attributes
 	for _, grp := range m.attrGroups() {
-		err = me.encodeTag(grp.tag)
+		err = me.encodeTag(grp.Tag)
 		if err == nil {
-			for _, attr := range grp.attrs {
+			for _, attr := range grp.Attrs {
 				if attr.Name == "" {
 					err = errors.New("Attribute without name")
 				} else {

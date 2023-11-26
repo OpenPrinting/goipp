@@ -73,6 +73,11 @@ func (tag Tag) IsDelimiter() bool {
 	return tag < 0x10
 }
 
+// IsGroup returns true for group tags
+func (tag Tag) IsGroup() bool {
+	return tag.IsDelimiter() && tag != TagZero && tag != TagEnd
+}
+
 // Type returns Type of Value that corresponds to the tag
 func (tag Tag) Type() Type {
 	if tag.IsDelimiter() {

@@ -53,6 +53,34 @@ type Message struct {
 	Code      Code    // Operation for request, status for response
 	RequestID uint32  // Set in request, returned in response
 
+	// Groups of Attributes
+	//
+	// This field allows to represent messages with repeated
+	// groups of attributes with the same group tag. The most
+	// noticeable use case is the Get-Jobs response which uses
+	// multiple Job groups, one per returned job. See RFC 8011,
+	// 4.2.6.2. for more details
+	//
+	// See also the following discussions which explain the demand
+	// to implement this interface:
+	//   https://github.com/OpenPrinting/goipp/issues/2
+	//   https://github.com/OpenPrinting/goipp/pull/3
+	//
+	// With respect to backward compatibility, the following
+	// behavior is implemented here:
+	//   1. (*Message).Decode() fills both Groups and named per-group
+	//      fields (i.e., Operation, Job etc)
+	//   2. (*Message).Encode() and (*Message) Print, if Groups != nil,
+	//      uses Groups and ignores  named per-group fields. Otherwise,
+	//      named fields are used as in 1.0.0
+	//   3. (*Message) Equal(), for each message uses Groups if
+	//      it is not nil or named per-group fields otherwise.
+	//      In another words, Equal() compares messages as if
+	//      they were encoded
+	//
+	// Since 1.1.0
+	Groups Groups
+
 	// Attributes, by group
 	Operation         Attributes // Operation attributes
 	Job               Attributes // Job attributes
@@ -101,20 +129,10 @@ func (m Message) Equal(m2 Message) bool {
 		return false
 	}
 
-	return m.Operation.Equal(m2.Operation) &&
-		m.Job.Equal(m2.Job) &&
-		m.Printer.Equal(m2.Printer) &&
-		m.Unsupported.Equal(m2.Unsupported) &&
-		m.Subscription.Equal(m2.Subscription) &&
-		m.EventNotification.Equal(m2.EventNotification) &&
-		m.Resource.Equal(m2.Resource) &&
-		m.Document.Equal(m2.Document) &&
-		m.System.Equal(m2.System) &&
-		m.Future11.Equal(m2.Future11) &&
-		m.Future12.Equal(m2.Future12) &&
-		m.Future13.Equal(m2.Future13) &&
-		m.Future14.Equal(m2.Future14) &&
-		m.Future15.Equal(m2.Future15)
+	groups := m.attrGroups()
+	groups2 := m2.attrGroups()
+
+	return groups.Equal(groups2)
 }
 
 // Reset the message into initial state
@@ -186,8 +204,8 @@ func (m *Message) Print(out io.Writer, request bool) {
 	}
 
 	for _, grp := range m.attrGroups() {
-		fmt.Fprintf(out, "\n"+msgPrintIndent+"GROUP %s\n", grp.tag)
-		for _, attr := range grp.attrs {
+		fmt.Fprintf(out, "\n"+msgPrintIndent+"GROUP %s\n", grp.Tag)
+		for _, attr := range grp.Attrs {
 			m.printAttribute(out, attr, 1)
 			out.Write([]byte("\n"))
 		}
@@ -234,15 +252,14 @@ func (m *Message) printIndent(out io.Writer, indent int) {
 // but groups with non-nil are not, even if len(Attributes) == 0
 //
 // This is a helper function for message encoder and pretty-printer
-func (m *Message) attrGroups() []struct {
-	tag   Tag
-	attrs Attributes
-} {
+func (m *Message) attrGroups() Groups {
+	// If m.Groups is set, use it
+	if m.Groups != nil {
+		return m.Groups
+	}
+
 	// Initialize slice of groups
-	groups := []struct {
-		tag   Tag
-		attrs Attributes
-	}{
+	groups := Groups{
 		{TagOperationGroup, m.Operation},
 		{TagJobGroup, m.Job},
 		{TagPrinterGroup, m.Printer},
@@ -262,7 +279,7 @@ func (m *Message) attrGroups() []struct {
 	// Skip all empty groups
 	out := 0
 	for in := 0; in < len(groups); in++ {
-		if groups[in].attrs != nil {
+		if groups[in].Attrs != nil {
 			groups[out] = groups[in]
 			out++
 		}

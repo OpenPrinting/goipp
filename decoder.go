@@ -76,6 +76,10 @@ func (md *messageDecoder) decode(m *Message) error {
 			prev = nil
 		}
 
+		if tag.IsGroup() {
+			m.Groups.Add(Group{tag, nil})
+		}
+
 		switch tag {
 		case TagZero:
 			err = errors.New("Invalid tag 0")
@@ -129,12 +133,25 @@ func (md *messageDecoder) decode(m *Message) error {
 			case attr.Name == "":
 				if prev != nil {
 					prev.Values.Add(attr.Values[0].T, attr.Values[0].V)
+
+					// Append value to the last Attribute of the
+					// last Group in the m.Groups
+					//
+					// Note, if we are here, this last Attribute definitely exists,
+					// because:
+					//   * prev != nil
+					//   * prev is set when new named attribute is added
+					//   * prev is reset when delimiter tag is encountered
+					gLast := &m.Groups[len(m.Groups)-1]
+					aLast := &gLast.Attrs[len(gLast.Attrs)-1]
+					aLast.Values.Add(attr.Values[0].T, attr.Values[0].V)
 				} else {
 					err = errors.New("Additional value without preceding attribute")
 				}
 			case group != nil:
 				group.Add(attr)
 				prev = &(*group)[len(*group)-1]
+				m.Groups[len(m.Groups)-1].Add(attr)
 			default:
 				err = errors.New("Attribute without a group")
 			}
