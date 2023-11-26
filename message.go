@@ -53,21 +53,94 @@ type Message struct {
 	Code      Code    // Operation for request, status for response
 	RequestID uint32  // Set in request, returned in response
 
+	// Attribute groups.
+	Groups AttributeGroups
+
 	// Attributes, by group
-	Operation         Attributes // Operation attributes
-	Job               Attributes // Job attributes
-	Printer           Attributes // Printer attributes
-	Unsupported       Attributes // Unsupported attributes
-	Subscription      Attributes // Subscription attributes
-	EventNotification Attributes // Event Notification attributes
-	Resource          Attributes // Resource attributes
-	Document          Attributes // Document attributes
-	System            Attributes // System attributes
-	Future11          Attributes // \
-	Future12          Attributes //  \
-	Future13          Attributes //   | Reserved for future extensions
-	Future14          Attributes //  /
-	Future15          Attributes // /
+	// Operation         Attributes // Operation attributes
+	// Job               Attributes // Job attributes
+	// Printer           Attributes // Printer attributes
+	// Unsupported       Attributes // Unsupported attributes
+	// Subscription      Attributes // Subscription attributes
+	// EventNotification Attributes // Event Notification attributes
+	// Resource          Attributes // Resource attributes
+	// Document          Attributes // Document attributes
+	// System            Attributes // System attributes
+	// Future11          Attributes // \
+	// Future12          Attributes //  \
+	// Future13          Attributes //   | Reserved for future extensions
+	// Future14          Attributes //  /
+	// Future15          Attributes // /
+}
+
+type AttributeGroup struct {
+	Tag   Tag
+	Attrs Attributes
+}
+
+type AttributeGroups []*AttributeGroup // stored as ptr to keep *Attributes valid when slice gets grown
+
+// returns the group for a given tag. If the tag is invalid, panics.
+// The returned pointer will always be valid, but might be pointing to a nil slice.
+func (m *Message) EnsureGroup(tag Tag) *Attributes {
+	switch tag {
+	case TagOperationGroup:
+	case TagJobGroup:
+	case TagPrinterGroup:
+	case TagUnsupportedGroup:
+	case TagSubscriptionGroup:
+	case TagEventNotificationGroup:
+	case TagResourceGroup:
+	case TagDocumentGroup:
+	case TagSystemGroup:
+	case TagFuture11Group:
+	case TagFuture12Group:
+	case TagFuture13Group:
+	case TagFuture14Group:
+	case TagFuture15Group:
+	default:
+		panic(fmt.Errorf("bad tag group %v", tag))
+	}
+	for _, grp := range m.Groups {
+		if grp.Tag == tag {
+			return &grp.Attrs
+		}
+	}
+	// not found? ensure existence.
+	newGrp := &AttributeGroup{
+		Tag:   tag,
+		Attrs: nil,
+	}
+	m.Groups = append(m.Groups, newGrp)
+	return &newGrp.Attrs
+}
+
+func (m *Message) Operation() *Attributes {
+	return m.EnsureGroup(TagOperationGroup)
+}
+func (m *Message) Job() *Attributes {
+	return m.EnsureGroup(TagJobGroup)
+}
+func (m *Message) Printer() *Attributes {
+	return m.EnsureGroup(TagPrinterGroup)
+}
+func (m *Message) Unsupported() *Attributes {
+	return m.EnsureGroup(TagUnsupportedGroup)
+}
+func (m *Message) Subscription() *Attributes {
+	return m.EnsureGroup(TagSubscriptionGroup)
+}
+func (m *Message) EventNotification() *Attributes {
+	return m.EnsureGroup(TagEventNotificationGroup)
+}
+func (m *Message) Resource() *Attributes {
+	return m.EnsureGroup(TagResourceGroup)
+}
+func (m *Message) Document() *Attributes {
+	return m.EnsureGroup(TagDocumentGroup)
+}
+func (m *Message) System() *Attributes {
+	return m.EnsureGroup(TagSystemGroup)
 }
 
 // NewRequest creates a new request message
@@ -101,20 +174,22 @@ func (m Message) Equal(m2 Message) bool {
 		return false
 	}
 
-	return m.Operation.Equal(m2.Operation) &&
-		m.Job.Equal(m2.Job) &&
-		m.Printer.Equal(m2.Printer) &&
-		m.Unsupported.Equal(m2.Unsupported) &&
-		m.Subscription.Equal(m2.Subscription) &&
-		m.EventNotification.Equal(m2.EventNotification) &&
-		m.Resource.Equal(m2.Resource) &&
-		m.Document.Equal(m2.Document) &&
-		m.System.Equal(m2.System) &&
-		m.Future11.Equal(m2.Future11) &&
-		m.Future12.Equal(m2.Future12) &&
-		m.Future13.Equal(m2.Future13) &&
-		m.Future14.Equal(m2.Future14) &&
-		m.Future15.Equal(m2.Future15)
+	groups1 := m.Groups
+	groups2 := m2.Groups
+
+	if len(groups1) != len(groups2) {
+		return false
+	}
+
+	for i, grp1 := range groups1 {
+		grp2 := groups2[i]
+
+		if grp1.Tag != grp2.Tag || !grp1.Attrs.Equal(grp2.Attrs) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Reset the message into initial state
@@ -185,9 +260,9 @@ func (m *Message) Print(out io.Writer, request bool) {
 		fmt.Fprintf(out, msgPrintIndent+"STATUS %s\n", Status(m.Code))
 	}
 
-	for _, grp := range m.attrGroups() {
-		fmt.Fprintf(out, "\n"+msgPrintIndent+"GROUP %s\n", grp.tag)
-		for _, attr := range grp.attrs {
+	for _, grp := range m.Groups {
+		fmt.Fprintf(out, "\n"+msgPrintIndent+"GROUP %s\n", grp.Tag)
+		for _, attr := range grp.Attrs {
 			m.printAttribute(out, attr, 1)
 			out.Write([]byte("\n"))
 		}
@@ -234,39 +309,39 @@ func (m *Message) printIndent(out io.Writer, indent int) {
 // but groups with non-nil are not, even if len(Attributes) == 0
 //
 // This is a helper function for message encoder and pretty-printer
-func (m *Message) attrGroups() []struct {
-	tag   Tag
-	attrs Attributes
-} {
-	// Initialize slice of groups
-	groups := []struct {
-		tag   Tag
-		attrs Attributes
-	}{
-		{TagOperationGroup, m.Operation},
-		{TagJobGroup, m.Job},
-		{TagPrinterGroup, m.Printer},
-		{TagUnsupportedGroup, m.Unsupported},
-		{TagSubscriptionGroup, m.Subscription},
-		{TagEventNotificationGroup, m.EventNotification},
-		{TagResourceGroup, m.Resource},
-		{TagDocumentGroup, m.Document},
-		{TagSystemGroup, m.System},
-		{TagFuture11Group, m.Future11},
-		{TagFuture12Group, m.Future12},
-		{TagFuture13Group, m.Future13},
-		{TagFuture14Group, m.Future14},
-		{TagFuture15Group, m.Future15},
-	}
+// func (m *Message) attrGroups() []struct {
+// 	tag   Tag
+// 	attrs Attributes
+// } {
+// 	// Initialize slice of groups
+// 	groups := []struct {
+// 		tag   Tag
+// 		attrs Attributes
+// 	}{
+// 		{TagOperationGroup, m.Operation},
+// 		{TagJobGroup, m.Job},
+// 		{TagPrinterGroup, m.Printer},
+// 		{TagUnsupportedGroup, m.Unsupported},
+// 		{TagSubscriptionGroup, m.Subscription},
+// 		{TagEventNotificationGroup, m.EventNotification},
+// 		{TagResourceGroup, m.Resource},
+// 		{TagDocumentGroup, m.Document},
+// 		{TagSystemGroup, m.System},
+// 		{TagFuture11Group, m.Future11},
+// 		{TagFuture12Group, m.Future12},
+// 		{TagFuture13Group, m.Future13},
+// 		{TagFuture14Group, m.Future14},
+// 		{TagFuture15Group, m.Future15},
+// 	}
 
-	// Skip all empty groups
-	out := 0
-	for in := 0; in < len(groups); in++ {
-		if groups[in].attrs != nil {
-			groups[out] = groups[in]
-			out++
-		}
-	}
+// 	// Skip all empty groups
+// 	out := 0
+// 	for in := 0; in < len(groups); in++ {
+// 		if groups[in].attrs != nil {
+// 			groups[out] = groups[in]
+// 			out++
+// 		}
+// 	}
 
-	return groups[:out]
-}
+// 	return groups[:out]
+// }

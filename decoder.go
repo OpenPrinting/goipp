@@ -83,33 +83,39 @@ func (md *messageDecoder) decode(m *Message) error {
 			done = true
 
 		case TagOperationGroup:
-			group = &m.Operation
+			fallthrough
 		case TagJobGroup:
-			group = &m.Job
+			fallthrough
 		case TagPrinterGroup:
-			group = &m.Printer
+			fallthrough
 		case TagUnsupportedGroup:
-			group = &m.Unsupported
+			fallthrough
 		case TagSubscriptionGroup:
-			group = &m.Subscription
+			fallthrough
 		case TagEventNotificationGroup:
-			group = &m.EventNotification
+			fallthrough
 		case TagResourceGroup:
-			group = &m.Resource
+			fallthrough
 		case TagDocumentGroup:
-			group = &m.Document
+			fallthrough
 		case TagSystemGroup:
-			group = &m.System
+			fallthrough
 		case TagFuture11Group:
-			group = &m.Future11
+			fallthrough
 		case TagFuture12Group:
-			group = &m.Future12
+			fallthrough
 		case TagFuture13Group:
-			group = &m.Future13
+			fallthrough
 		case TagFuture14Group:
-			group = &m.Future14
+			fallthrough
 		case TagFuture15Group:
-			group = &m.Future15
+			// start a new group
+			newGroup := &AttributeGroup{
+				Tag:   tag,
+				Attrs: nil,
+			}
+			m.Groups = append(m.Groups, newGroup)
+			group = &newGroup.Attrs
 
 		default:
 			// Decode attribute
