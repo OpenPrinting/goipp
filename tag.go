@@ -31,10 +31,10 @@ const (
 	TagDocumentGroup          Tag = 0x09 // Document group
 	TagSystemGroup            Tag = 0x0a // System group
 	TagFuture11Group          Tag = 0x0b // Future group 11
-	TagFuture12Group          Tag = 0x0c // Future group 11
-	TagFuture13Group          Tag = 0x0d // Future group 11
-	TagFuture14Group          Tag = 0x0e // Future group 11
-	TagFuture15Group          Tag = 0x0f // Future group 11
+	TagFuture12Group          Tag = 0x0c // Future group 12
+	TagFuture13Group          Tag = 0x0d // Future group 13
+	TagFuture14Group          Tag = 0x0e // Future group 14
+	TagFuture15Group          Tag = 0x0f // Future group 15
 
 	// Value tags
 	TagUnsupportedValue Tag = 0x10 // Unsupported value
