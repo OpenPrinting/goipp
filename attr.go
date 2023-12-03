@@ -36,7 +36,8 @@ func (attrs Attributes) Equal(attrs2 Attributes) bool {
 	return true
 }
 
-// Attribute represents a single attribute
+// Attribute represents a single attribute, which consist of
+// the Name and one or more Values
 type Attribute struct {
 	Name   string // Attribute name
 	Values Values // Slice of values
@@ -55,7 +56,7 @@ func (a Attribute) Equal(a2 Attribute) bool {
 	return a.Name == a2.Name && a.Values.Equal(a2.Values)
 }
 
-// Unpack attribute value
+// Unpack attribute value from its wire representation
 func (a *Attribute) unpack(tag Tag, value []byte) error {
 	var err error
 	var val Value

@@ -8,7 +8,8 @@
 
 package goipp
 
-// Group represents a group of attributes
+// Group represents a group of attributes.
+//
 // Since 1.1.0
 type Group struct {
 	Tag   Tag        // Group tag
@@ -25,12 +26,12 @@ type Group struct {
 // Since 1.1.0
 type Groups []Group
 
-// Add Attribute to Group
+// Add Attribute to the Group
 func (g *Group) Add(attr Attribute) {
 	g.Attrs.Add(attr)
 }
 
-// Equal checks that g and g2 are equal
+// Equal checks that groups g and g2 are equal
 func (g Group) Equal(g2 Group) bool {
 	return g.Tag == g2.Tag && g.Attrs.Equal(g2.Attrs)
 }

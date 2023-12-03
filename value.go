@@ -17,14 +17,14 @@ import (
 	"time"
 )
 
-// Values represents a sequence of values with tags
+// Values represents a sequence of values with tags.
 // Usually Values used as a "payload" of Attribute
 type Values []struct {
 	T Tag   // The tag
 	V Value // The value
 }
 
-// Add value to Values
+// Add Value to Values
 func (values *Values) Add(t Tag, v Value) {
 	*values = append(*values, struct {
 		T Tag
@@ -81,7 +81,7 @@ type Value interface {
 // ValueEqual checks if two values are equal
 //
 // Equality means that types and values are equal. For structured
-// values, like Collection, a deep comparison is performed
+// values, like Collection, deep comparison is performed
 func ValueEqual(v1, v2 Value) bool {
 	if v1.Type() != v2.Type() {
 		return false
@@ -101,7 +101,7 @@ func ValueEqual(v1, v2 Value) bool {
 	return v1 == v2
 }
 
-// Void represents "no value"
+// Void is the Value that represents "no value"
 //
 // Use with: TagUnsupportedValue, TagDefault, TagUnknown,
 // TagNotSettable, TagDeleteAttr, TagAdminDefine
@@ -110,7 +110,7 @@ type Void struct{}
 // String converts Void Value to string
 func (Void) String() string { return "" }
 
-// Type returns type of Value
+// Type returns type of Value (TypeVoid for Void)
 func (Void) Type() Type { return TypeVoid }
 
 // Encode Void Value into wire format
@@ -123,7 +123,7 @@ func (Void) decode([]byte) (Value, error) {
 	return Void{}, nil
 }
 
-// Integer represents an Integer Value
+// Integer is the Value that represents 32-bit signed int
 //
 // Use with: TagInteger, TagEnum
 type Integer int32
@@ -131,7 +131,7 @@ type Integer int32
 // String converts Integer value to string
 func (v Integer) String() string { return fmt.Sprintf("%d", int32(v)) }
 
-// Type returns type of Value
+// Type returns type of Value (TypeInteger for Integer)
 func (Integer) Type() Type { return TypeInteger }
 
 // Encode Integer Value into wire format
@@ -148,7 +148,7 @@ func (Integer) decode(data []byte) (Value, error) {
 	return Integer(binary.BigEndian.Uint32(data)), nil
 }
 
-// Boolean represents a boolean Value
+// Boolean is the Value that contains true of false
 //
 // Use with: TagBoolean
 type Boolean bool
@@ -156,7 +156,7 @@ type Boolean bool
 // String converts Boolean value to string
 func (v Boolean) String() string { return fmt.Sprintf("%t", bool(v)) }
 
-// Type returns type of Value
+// Type returns type of Value (TypeBoolean for Boolean)
 func (Boolean) Type() Type { return TypeBoolean }
 
 // Encode Boolean Value into wire format
@@ -176,7 +176,7 @@ func (Boolean) decode(data []byte) (Value, error) {
 	return Boolean(data[0] != 0), nil
 }
 
-// String represents a string Value
+// String is the Value that represents string of text
 //
 // Use with: TagText, TagName, TagReservedString, TagKeyword, TagURI,
 // TagURIScheme, TagCharset, TagLanguage, TagMimeType, TagMemberName
@@ -185,7 +185,7 @@ type String string
 // String converts String value to string
 func (v String) String() string { return string(v) }
 
-// Type returns type of Value
+// Type returns type of Value (TypeString for String)
 func (String) Type() Type { return TypeString }
 
 // Encode String Value into wire format
@@ -198,7 +198,7 @@ func (String) decode(data []byte) (Value, error) {
 	return String(data), nil
 }
 
-// Time represents a DateTime Value
+// Time is the Value that represents DataTime
 //
 // Use with: TagTime
 type Time struct{ time.Time }
@@ -206,7 +206,7 @@ type Time struct{ time.Time }
 // String converts Time value to string
 func (v Time) String() string { return v.Time.Format(time.RFC3339) }
 
-// Type returns type of Value
+// Type returns type of Value (TypeDateTime for Time)
 func (Time) Type() Type { return TypeDateTime }
 
 // Encode Time Value into wire format
@@ -315,7 +315,7 @@ func (Time) decode(data []byte) (Value, error) {
 	return Time{t}, nil
 }
 
-// Resolution represents a resolution Value
+// Resolution is the Value that represents image resolution.
 //
 // Use with: TagResolution
 type Resolution struct {
@@ -328,7 +328,7 @@ func (v Resolution) String() string {
 	return fmt.Sprintf("%dx%d%s", v.Xres, v.Yres, v.Units)
 }
 
-// Type returns type of Value
+// Type returns type of Value (TypeResolution for Resolution)
 func (Resolution) Type() Type { return TypeResolution }
 
 // Encode Resolution Value into wire format
@@ -382,7 +382,7 @@ func (u Units) String() string {
 	}
 }
 
-// Range represents a range of integers Value
+// Range is the Value that represents a range of 32-bit signed integers
 //
 // Use with: TagRange
 type Range struct {
@@ -394,7 +394,7 @@ func (v Range) String() string {
 	return fmt.Sprintf("%d-%d", v.Lower, v.Upper)
 }
 
-// Type returns type of Value
+// Type returns type of Value (TypeRange for Range)
 func (Range) Type() Type { return TypeRange }
 
 // Encode Range Value into wire format
@@ -423,9 +423,10 @@ func (Range) decode(data []byte) (Value, error) {
 	}, nil
 }
 
-// TextWithLang represents a combination of two strings:
-// one is a name of natural language and second is a text
-// on this language
+// TextWithLang is the Value that represents a combination
+// of two strings:
+//   * text on some natural language (i.e., "hello")
+//   * name of that language (i.e., "en")
 //
 // Use with: TagTextLang, TagNameLang
 type TextWithLang struct {
@@ -435,7 +436,7 @@ type TextWithLang struct {
 // String converts TextWithLang value to string
 func (v TextWithLang) String() string { return v.Text + " [" + v.Lang + "]" }
 
-// Type returns type of Value
+// Type returns type of Value (TypeTextWithLang for TextWithLang)
 func (TextWithLang) Type() Type { return TypeTextWithLang }
 
 // Encode TextWithLang Value into wire format
@@ -515,15 +516,15 @@ func (TextWithLang) decode(data []byte) (Value, error) {
 	return TextWithLang{Lang: lang, Text: text}, nil
 }
 
-// Binary represents a raw binary Value
+// Binary is the Value that represents a raw binary data
 type Binary []byte
 
-// String converts Range value to string
+// String converts Binary value to string
 func (v Binary) String() string {
 	return fmt.Sprintf("%x", []byte(v))
 }
 
-// Type returns type of Value
+// Type returns type of Value (TypeBinary for Binary)
 func (Binary) Type() Type { return TypeBinary }
 
 // Encode TextWithLang Value into wire format
@@ -536,7 +537,7 @@ func (Binary) decode(data []byte) (Value, error) {
 	return Binary(data), nil
 }
 
-// Collection represents a collection of attributes
+// Collection is the Value that represents collection of attributes
 //
 // Use with: TagBeginCollection
 type Collection Attributes
@@ -566,7 +567,7 @@ func (v Collection) String() string {
 	return buf.String()
 }
 
-// Type returns type of Value
+// Type returns type of Value (TypeCollection for Collection)
 func (Collection) Type() Type { return TypeCollection }
 
 // Encode Collection Value into wire format

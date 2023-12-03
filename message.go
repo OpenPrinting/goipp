@@ -22,7 +22,7 @@ type Code uint16
 // 16-bit word
 type Version uint16
 
-// DefaultVersion is the default IPP version
+// DefaultVersion is the default IPP version (2.0 for now)
 const DefaultVersion Version = 0x0200
 
 // MakeVersion makes version from major and minor parts
@@ -40,7 +40,7 @@ func (v Version) Minor() uint8 {
 	return uint8(v)
 }
 
-// String() converts version to string (i.e., 2.0)
+// String() converts version to string (i.e., "2.0")
 func (v Version) String() string {
 	return fmt.Sprintf("%d.%d", v.Major(), v.Minor())
 }
