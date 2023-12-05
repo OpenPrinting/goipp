@@ -89,7 +89,7 @@ func (me *messageEncoder) encodeAttr(attr Attribute, checkTag bool) error {
 				return fmt.Errorf("Tag %s cannot be used with value", tag)
 			}
 
-			if tag&0x80000000 != 0 {
+			if uint(tag)&0x80000000 != 0 {
 				return fmt.Errorf("Tag %s exceeds extension tag range", tag)
 			}
 		}

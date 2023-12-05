@@ -70,7 +70,7 @@ const (
 
 // IsDelimiter returns true for delimiter tags
 func (tag Tag) IsDelimiter() bool {
-	return tag < 0x10
+	return uint(tag) < 0x10
 }
 
 // IsGroup returns true for group tags

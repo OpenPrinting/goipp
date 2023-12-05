@@ -1015,7 +1015,8 @@ func TestTagExtension(t *testing.T) {
 
 	// Tag can't exceed 0x7fffffff, check that encoder validates it
 	m1 = NewResponse(DefaultVersion, StatusOk, 0x12345678)
-	m1.Operation.Add(MakeAttribute("attr", 0x81234567,
+	tmp := uint32(0x81234567)
+	m1.Operation.Add(MakeAttribute("attr", Tag(tmp),
 		Binary{1, 2, 3, 4, 5}))
 
 	_, err = m1.EncodeBytes()
