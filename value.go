@@ -78,6 +78,35 @@ type Value interface {
 	decode([]byte) (Value, error)
 }
 
+var (
+	_ = Value(Binary(nil))
+	_ = Value(Boolean(false))
+	_ = Value(Collection(nil))
+	_ = Value(Integer(0))
+	_ = Value(Range{})
+	_ = Value(Resolution{})
+	_ = Value(String(""))
+	_ = Value(TextWithLang{})
+	_ = Value(Time{time.Time{}})
+	_ = Value(Void{})
+)
+
+// IntegerOrRange is a Value of type Integer or Range
+type IntegerOrRange interface {
+	Value
+
+	// Within checks that x fits within the range:
+	//
+	//   for Integer: x == Integer's value
+	//   for Range:   Lower <= x && x <= Upper
+	Within(x int) bool
+}
+
+var (
+	_ = IntegerOrRange(Integer(0))
+	_ = IntegerOrRange(Range{})
+)
+
 // ValueEqual checks if two values are equal
 //
 // Equality means that types and values are equal. For structured
@@ -133,6 +162,13 @@ func (v Integer) String() string { return fmt.Sprintf("%d", int32(v)) }
 
 // Type returns type of Value (TypeInteger for Integer)
 func (Integer) Type() Type { return TypeInteger }
+
+// Within checks that x fits within the range
+//
+// It implements IntegerOrRange interface
+func (v Integer) Within(x int) bool {
+	return x == int(v)
+}
 
 // Encode Integer Value into wire format
 func (v Integer) encode() ([]byte, error) {
@@ -409,6 +445,13 @@ func (v Range) encode() ([]byte, error) {
 		byte(l >> 24), byte(l >> 16), byte(l >> 8), byte(l),
 		byte(u >> 24), byte(u >> 16), byte(u >> 8), byte(u),
 	}, nil
+}
+
+// Within checks that x fits within the range
+//
+// It implements IntegerOrRange interface
+func (v Range) Within(x int) bool {
+	return v.Lower <= x && x <= v.Upper
 }
 
 // Decode Range Value from wire format
