@@ -10,6 +10,7 @@ package goipp
 
 import (
 	"fmt"
+	"sort"
 )
 
 // Attributes represents a slice of attributes
@@ -36,6 +37,43 @@ func (attrs Attributes) Equal(attrs2 Attributes) bool {
 	return true
 }
 
+// Similar checks that attrs and attrs2 are **logically** equal,
+// which means the following:
+//   - attrs and addrs2 contain the same set of attributes,
+//     but may be differently ordered
+//   - Values of attributes of the same name within attrs and
+//     attrs2 are similar
+func (attrs Attributes) Similar(attrs2 Attributes) bool {
+	// Fast check: if lengths are not the same, attributes
+	// are definitely not equal
+	if len(attrs) != len(attrs2) {
+		return false
+	}
+
+	// Sort attrs and attrs2 by name
+	sorted1 := make(Attributes, len(attrs))
+	copy(sorted1, attrs)
+	sort.SliceStable(sorted1, func(i, j int) bool {
+		return sorted1[i].Name < sorted1[j].Name
+	})
+
+	sorted2 := make(Attributes, len(attrs2))
+	copy(sorted2, attrs2)
+	sort.SliceStable(sorted2, func(i, j int) bool {
+		return sorted2[i].Name < sorted2[j].Name
+	})
+
+	// And now compare sorted slices
+	for i, attr1 := range sorted1 {
+		attr2 := sorted2[i]
+		if !attr1.Similar(attr2) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Attribute represents a single attribute, which consist of
 // the Name and one or more Values
 type Attribute struct {
@@ -54,6 +92,12 @@ func MakeAttribute(name string, tag Tag, value Value) Attribute {
 // (i.e., names are the same and values are equal)
 func (a Attribute) Equal(a2 Attribute) bool {
 	return a.Name == a2.Name && a.Values.Equal(a2.Values)
+}
+
+// Similar checks that Attribute is **logically** equal to another
+// Attribute (i.e., names are the same and values are similar)
+func (a Attribute) Similar(a2 Attribute) bool {
+	return a.Name == a2.Name && a.Values.Similar(a2.Values)
 }
 
 // Unpack attribute value from its wire representation

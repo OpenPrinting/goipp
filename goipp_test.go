@@ -297,6 +297,236 @@ func TestAttributesEqual(t *testing.T) {
 	}
 }
 
+// Test (Attributes) Similar()
+func TestAttributesSimilar(t *testing.T) {
+	type testData struct {
+		attrs1, attrs2 Attributes
+		similar        bool
+	}
+
+	// Test vectors
+	tests := []testData{
+		// attrs1 and attrs2 are fully equal
+		{
+			attrs1: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{TagInteger, Integer(0)},
+					},
+				},
+			},
+
+			attrs2: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{TagInteger, Integer(0)},
+					},
+				},
+			},
+
+			similar: true,
+		},
+
+		// attrs1 and attrs2 are not equal
+		{
+			attrs1: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{TagInteger, Integer(1)},
+					},
+				},
+			},
+
+			attrs2: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{TagInteger, Integer(2)},
+					},
+				},
+			},
+
+			similar: false,
+		},
+
+		// String vs Binary
+		{
+			attrs1: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{TagText, String("hello")},
+						{TagText, Binary("world")},
+					},
+				},
+			},
+
+			attrs2: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{TagText, Binary("hello")},
+						{TagText, String("world")},
+					},
+				},
+			},
+
+			similar: true,
+		},
+
+		// Same attrs in different order
+		{
+			attrs1: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{TagText, String("hello")},
+					},
+				},
+				Attribute{
+					Name: "a2",
+					Values: Values{
+						{TagText, String("world")},
+					},
+				},
+			},
+
+			attrs2: Attributes{
+				Attribute{
+					Name: "a2",
+					Values: Values{
+						{TagText, String("world")},
+					},
+				},
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{TagText, String("hello")},
+					},
+				},
+			},
+
+			similar: true,
+		},
+
+		// Different number of attributes
+		{
+			attrs1: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{TagText, String("hello")},
+					},
+				},
+			},
+
+			attrs2: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{TagText, String("hello")},
+					},
+				},
+				Attribute{
+					Name: "a2",
+					Values: Values{
+						{TagText, String("world")},
+					},
+				},
+			},
+
+			similar: false,
+		},
+
+		// Different number of values
+		{
+			attrs1: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{TagText, String("hello")},
+					},
+				},
+				Attribute{
+					Name: "a2",
+					Values: Values{
+						{TagText, String("world")},
+					},
+				},
+			},
+
+			attrs2: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{TagText, String("hello")},
+					},
+				},
+				Attribute{
+					Name: "a2",
+					Values: Values{
+						{TagText, String("world")},
+						{TagText, String("!")},
+					},
+				},
+			},
+
+			similar: false,
+		},
+
+		// Collection vs Collection
+		{
+			attrs1: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{
+							TagBeginCollection,
+							Collection{
+								MakeAttribute("m1", TagString, String("hello")),
+								MakeAttribute("m2", TagString, String("world")),
+								MakeAttribute("m3", TagString, String("!")),
+							},
+						},
+					},
+				},
+			},
+
+			attrs2: Attributes{
+				Attribute{
+					Name: "a1",
+					Values: Values{
+						{
+							TagBeginCollection,
+							Collection{
+								MakeAttribute("m2", TagString, String("world")),
+								MakeAttribute("m1", TagString, String("hello")),
+								MakeAttribute("m3", TagString, Binary("!")),
+							},
+						},
+					},
+				},
+			},
+
+			similar: true,
+		},
+	}
+
+	// Run the tests
+	for _, test := range tests {
+		similar := test.attrs1.Similar(test.attrs2)
+		if similar != test.similar {
+			t.Errorf("(Attributes) Similar(): answer expected: %v, received: %v",
+				test.similar, similar)
+			t.Errorf("   attrs1: %s", test.attrs1)
+			t.Errorf("   attrs2: %s", test.attrs2)
+		}
+	}
+}
+
 // Test (Message) Equal()
 func TestMessageEqual(t *testing.T) {
 	var m1, m2 Message

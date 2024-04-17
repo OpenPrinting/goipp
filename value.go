@@ -67,6 +67,22 @@ func (values Values) Equal(values2 Values) bool {
 	return true
 }
 
+// Similar performs deep check of **logical** equality of two Values
+func (values Values) Similar(values2 Values) bool {
+	if len(values) != len(values2) {
+		return false
+	}
+
+	for i, v := range values {
+		v2 := values2[i]
+		if v.T != v2.T || !ValueSimilar(v.V, v2.V) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Value represents an attribute value
 //
 // IPP uses typed values, and type of each value is unambiguously
@@ -128,6 +144,38 @@ func ValueEqual(v1, v2 Value) bool {
 	}
 
 	return v1 == v2
+}
+
+// ValueSimilar checks if two values are **logically** equal,
+// which means the following:
+//   - If values are equal (i.e., ValueEqual() returns true),
+//     they are similar.
+//   - Binary and String values are similar, if they represent
+//     the same sequence of bytes.
+//   - Two collections are similar, if they contain the same
+//     set of attributes (but may be differently ordered) and
+//     values of these attributes are similar.
+func ValueSimilar(v1, v2 Value) bool {
+	if ValueEqual(v1, v2) {
+		return true
+	}
+
+	t1 := v1.Type()
+	t2 := v2.Type()
+
+	switch {
+	case t1 == TypeBinary && t2 == TypeString:
+		return bytes.Equal(v1.(Binary), []byte(v2.(String)))
+
+	case t1 == TypeString && t2 == TypeBinary:
+		return bytes.Equal([]byte(v1.(String)), v2.(Binary))
+
+	case t1 == TypeCollection && t2 == TypeCollection:
+		return Attributes(v1.(Collection)).Similar(
+			Attributes(v2.(Collection)))
+	}
+
+	return false
 }
 
 // Void is the Value that represents "no value"
