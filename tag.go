@@ -92,7 +92,7 @@ func (tag Tag) Type() Type {
 		return TypeBoolean
 
 	case TagUnsupportedValue, TagDefault, TagUnknown, TagNotSettable,
-		TagDeleteAttr, TagAdminDefine:
+		TagNoValue, TagDeleteAttr, TagAdminDefine:
 		// These tags not expected to have value
 		return TypeVoid
 
