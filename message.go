@@ -157,6 +157,59 @@ func (m *Message) Reset() {
 	*m = Message{}
 }
 
+// FixGroups rebuilds m.Operation, m.Job. m.Printer... etc from
+// the msg.Groups.
+func (m *Message) FixGroups() {
+	m.Operation = nil
+	m.Job = nil
+	m.Printer = nil
+	m.Unsupported = nil
+	m.Subscription = nil
+	m.EventNotification = nil
+	m.Resource = nil
+	m.Document = nil
+	m.System = nil
+	m.Future11 = nil
+	m.Future12 = nil
+	m.Future13 = nil
+	m.Future14 = nil
+	m.Future15 = nil
+
+	for _, grp := range m.Groups {
+		switch grp.Tag {
+		case TagOperationGroup:
+			m.Operation = append(m.Operation, grp.Attrs...)
+		case TagJobGroup:
+			m.Job = append(m.Job, grp.Attrs...)
+		case TagPrinterGroup:
+			m.Printer = append(m.Printer, grp.Attrs...)
+		case TagUnsupportedGroup:
+			m.Unsupported = append(m.Unsupported, grp.Attrs...)
+		case TagSubscriptionGroup:
+			m.Subscription = append(m.Subscription, grp.Attrs...)
+		case TagEventNotificationGroup:
+			m.EventNotification = append(m.EventNotification,
+				grp.Attrs...)
+		case TagResourceGroup:
+			m.Resource = append(m.Resource, grp.Attrs...)
+		case TagDocumentGroup:
+			m.Document = append(m.Document, grp.Attrs...)
+		case TagSystemGroup:
+			m.System = append(m.System, grp.Attrs...)
+		case TagFuture11Group:
+			m.Future11 = append(m.Future11, grp.Attrs...)
+		case TagFuture12Group:
+			m.Future12 = append(m.Future12, grp.Attrs...)
+		case TagFuture13Group:
+			m.Future13 = append(m.Future13, grp.Attrs...)
+		case TagFuture14Group:
+			m.Future14 = append(m.Future14, grp.Attrs...)
+		case TagFuture15Group:
+			m.Future15 = append(m.Future15, grp.Attrs...)
+		}
+	}
+}
+
 // Encode message
 func (m *Message) Encode(out io.Writer) error {
 	me := messageEncoder{
