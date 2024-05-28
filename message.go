@@ -135,6 +135,23 @@ func (m Message) Equal(m2 Message) bool {
 	return groups.Equal(groups2)
 }
 
+// Similar checks that two messages are **logically** equal,
+// which means the following:
+//   - Version, Code and RequestID are equal
+//   - Groups of attributes are Similar
+func (m Message) Similar(m2 Message) bool {
+	if m.Version != m2.Version ||
+		m.Code != m2.Code ||
+		m.RequestID != m2.RequestID {
+		return false
+	}
+
+	groups := m.attrGroups()
+	groups2 := m2.attrGroups()
+
+	return groups.Similar(groups2)
+}
+
 // Reset the message into initial state
 func (m *Message) Reset() {
 	*m = Message{}
