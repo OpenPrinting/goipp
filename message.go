@@ -121,59 +121,20 @@ func NewResponse(v Version, status Status, id uint32) *Message {
 	}
 }
 
-// Equal checks that two messages are equal
-func (m Message) Equal(m2 Message) bool {
-	if m.Version != m2.Version ||
-		m.Code != m2.Code ||
-		m.RequestID != m2.RequestID {
-		return false
+// NewMessageWithGroups creates a new message with Groups of
+// attributes.
+//
+// Fields like m.Operation, m.Job. m.Printer... and so on will
+// be properly filled automatically.
+func NewMessageWithGroups(v Version, code Code,
+	id uint32, groups Groups) *Message {
+
+	m := &Message{
+		Version:   v,
+		Code:      code,
+		RequestID: id,
+		Groups:    groups,
 	}
-
-	groups := m.attrGroups()
-	groups2 := m2.attrGroups()
-
-	return groups.Equal(groups2)
-}
-
-// Similar checks that two messages are **logically** equal,
-// which means the following:
-//   - Version, Code and RequestID are equal
-//   - Groups of attributes are Similar
-func (m Message) Similar(m2 Message) bool {
-	if m.Version != m2.Version ||
-		m.Code != m2.Code ||
-		m.RequestID != m2.RequestID {
-		return false
-	}
-
-	groups := m.attrGroups()
-	groups2 := m2.attrGroups()
-
-	return groups.Similar(groups2)
-}
-
-// Reset the message into initial state
-func (m *Message) Reset() {
-	*m = Message{}
-}
-
-// FixGroups rebuilds m.Operation, m.Job. m.Printer... etc from
-// the msg.Groups.
-func (m *Message) FixGroups() {
-	m.Operation = nil
-	m.Job = nil
-	m.Printer = nil
-	m.Unsupported = nil
-	m.Subscription = nil
-	m.EventNotification = nil
-	m.Resource = nil
-	m.Document = nil
-	m.System = nil
-	m.Future11 = nil
-	m.Future12 = nil
-	m.Future13 = nil
-	m.Future14 = nil
-	m.Future15 = nil
 
 	for _, grp := range m.Groups {
 		switch grp.Tag {
@@ -208,6 +169,44 @@ func (m *Message) FixGroups() {
 			m.Future15 = append(m.Future15, grp.Attrs...)
 		}
 	}
+
+	return m
+}
+
+// Equal checks that two messages are equal
+func (m Message) Equal(m2 Message) bool {
+	if m.Version != m2.Version ||
+		m.Code != m2.Code ||
+		m.RequestID != m2.RequestID {
+		return false
+	}
+
+	groups := m.attrGroups()
+	groups2 := m2.attrGroups()
+
+	return groups.Equal(groups2)
+}
+
+// Similar checks that two messages are **logically** equal,
+// which means the following:
+//   - Version, Code and RequestID are equal
+//   - Groups of attributes are Similar
+func (m Message) Similar(m2 Message) bool {
+	if m.Version != m2.Version ||
+		m.Code != m2.Code ||
+		m.RequestID != m2.RequestID {
+		return false
+	}
+
+	groups := m.attrGroups()
+	groups2 := m2.attrGroups()
+
+	return groups.Similar(groups2)
+}
+
+// Reset the message into initial state
+func (m *Message) Reset() {
+	*m = Message{}
 }
 
 // Encode message
