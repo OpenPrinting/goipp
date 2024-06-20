@@ -21,6 +21,13 @@ func (attrs *Attributes) Add(attr Attribute) {
 	*attrs = append(*attrs, attr)
 }
 
+// Clone creates a copy of Attributes
+func (attrs Attributes) Clone() Attributes {
+	attrs2 := make(Attributes, len(attrs))
+	copy(attrs2, attrs)
+	return attrs2
+}
+
 // Equal checks that attrs and attrs2 are equal
 func (attrs Attributes) Equal(attrs2 Attributes) bool {
 	if len(attrs) != len(attrs2) {
@@ -51,14 +58,12 @@ func (attrs Attributes) Similar(attrs2 Attributes) bool {
 	}
 
 	// Sort attrs and attrs2 by name
-	sorted1 := make(Attributes, len(attrs))
-	copy(sorted1, attrs)
+	sorted1 := attrs.Clone()
 	sort.SliceStable(sorted1, func(i, j int) bool {
 		return sorted1[i].Name < sorted1[j].Name
 	})
 
-	sorted2 := make(Attributes, len(attrs2))
-	copy(sorted2, attrs2)
+	sorted2 := attrs2.Clone()
 	sort.SliceStable(sorted2, func(i, j int) bool {
 		return sorted2[i].Name < sorted2[j].Name
 	})

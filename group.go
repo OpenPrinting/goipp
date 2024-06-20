@@ -48,6 +48,13 @@ func (groups *Groups) Add(g Group) {
 	*groups = append(*groups, g)
 }
 
+// Clone creates a copy of Groups
+func (groups Groups) Clone() Groups {
+	groups2 := make(Groups, len(groups))
+	copy(groups2, groups)
+	return groups2
+}
+
 // Equal checks that groups and groups2 are equal
 func (groups Groups) Equal(groups2 Groups) bool {
 	if len(groups) != len(groups2) {
@@ -79,8 +86,8 @@ func (groups Groups) Similar(groups2 Groups) bool {
 	}
 
 	// Sort groups by tag
-	groups = groups.clone()
-	groups2 = groups2.clone()
+	groups = groups.Clone()
+	groups2 = groups2.Clone()
 
 	sort.SliceStable(groups, func(i, j int) bool {
 		return groups[i].Tag < groups[j].Tag
@@ -98,11 +105,4 @@ func (groups Groups) Similar(groups2 Groups) bool {
 	}
 
 	return true
-}
-
-// clone returns a copy of groups.
-func (groups Groups) clone() Groups {
-	groups2 := make(Groups, len(groups))
-	copy(groups2, groups)
-	return groups2
 }
