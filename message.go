@@ -260,7 +260,9 @@ func (m *Message) DecodeBytesEx(data []byte, opt DecoderOptions) error {
 
 // Print pretty-prints the message. The 'request' parameter affects
 // interpretation of Message.Code: it is interpreted either
-// as Op or as Status
+// as [Op] or as [Status].
+//
+// Deprecated. Use [Formatter] instead.
 func (m *Message) Print(out io.Writer, request bool) {
 	out.Write([]byte("{\n"))
 
@@ -284,7 +286,7 @@ func (m *Message) Print(out io.Writer, request bool) {
 }
 
 // Pretty-print an attribute. Handles Collection attributes
-// recursively
+// recursively.
 func (m *Message) printAttribute(out io.Writer, attr Attribute, indent int) {
 	m.printIndent(out, indent)
 	fmt.Fprintf(out, "ATTR %q", attr.Name)
