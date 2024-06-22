@@ -78,6 +78,36 @@ func TestFmtAttribute(t *testing.T) {
 			},
 		},
 
+		// 1SetOf Collection
+		{
+			attr: MakeAttr("media-size-supported",
+				TagBeginCollection,
+				Collection{
+					MakeAttribute("x-dimension",
+						TagInteger, Integer(20990)),
+					MakeAttribute("y-dimension",
+						TagInteger, Integer(29704)),
+				},
+				Collection{
+					MakeAttribute("x-dimension",
+						TagInteger, Integer(14852)),
+					MakeAttribute("y-dimension",
+						TagInteger, Integer(20990)),
+				},
+			),
+
+			out: []string{
+				`ATTR "media-size-supported" collection: {`,
+				`    MEMBER "x-dimension" integer: 20990`,
+				`    MEMBER "y-dimension" integer: 29704`,
+				`}`,
+				`{`,
+				`    MEMBER "x-dimension" integer: 14852`,
+				`    MEMBER "y-dimension" integer: 20990`,
+				`}`,
+			},
+		},
+
 		// Multiple values
 		{
 			attr: MakeAttr("page-delivery-supported",

@@ -173,14 +173,17 @@ func (f *Formatter) fmtAttributeOrMember(attr Attribute, member bool) {
 	}
 
 	tag := TagZero
-	for _, val := range attr.Values {
+	for i, val := range attr.Values {
 		if val.T != tag {
 			fmt.Fprintf(buf, " %s:", val.T)
 			tag = val.T
 		}
 
 		if collection, ok := val.V.(Collection); ok {
-			buf.Write([]byte(" {\n"))
+			if i == 0 {
+				buf.WriteByte(' ')
+			}
+			buf.Write([]byte("{\n"))
 			f.indent++
 
 			for _, attr2 := range collection {
