@@ -86,11 +86,34 @@ type Attribute struct {
 	Values Values // Slice of values
 }
 
-// MakeAttribute makes Attribute with single value
+// MakeAttribute makes Attribute with single value.
+//
+// Deprecated. Use [MakeAttr] instead.
 func MakeAttribute(name string, tag Tag, value Value) Attribute {
 	attr := Attribute{Name: name}
 	attr.Values.Add(tag, value)
 	return attr
+}
+
+// MakeAttr makes Attribute with one or more values.
+func MakeAttr(name string, tag Tag, val1 Value, values ...Value) Attribute {
+	attr := Attribute{Name: name}
+	attr.Values.Add(tag, val1)
+	for _, val := range values {
+		attr.Values.Add(tag, val)
+	}
+	return attr
+}
+
+// MakeAttrCollection makes [Attribute] with [Collection] value.
+func MakeAttrCollection(name string,
+	member1 Attribute, members ...Attribute) Attribute {
+
+	col := make(Collection, len(members)+1)
+	col[0] = member1
+	copy(col[1:], members)
+
+	return MakeAttribute(name, TagBeginCollection, col)
 }
 
 // Equal checks that Attribute is equal to another Attribute
