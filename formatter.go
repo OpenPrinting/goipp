@@ -173,17 +173,19 @@ func (f *Formatter) fmtAttributeOrMember(attr Attribute, member bool) {
 	}
 
 	tag := TagZero
-	for i, val := range attr.Values {
+	for _, val := range attr.Values {
 		if val.T != tag {
 			fmt.Fprintf(buf, " %s:", val.T)
 			tag = val.T
 		}
 
 		if collection, ok := val.V.(Collection); ok {
-			if i == 0 {
-				buf.WriteByte(' ')
+			if f.onNL() {
+				f.Printf("{")
+			} else {
+				buf.Write([]byte(" {\n"))
 			}
-			buf.Write([]byte("{\n"))
+
 			f.indent++
 
 			for _, attr2 := range collection {
@@ -200,12 +202,16 @@ func (f *Formatter) fmtAttributeOrMember(attr Attribute, member bool) {
 	f.forceNL()
 }
 
-// forceNL inserts newline character, text is not empty and the last
-// character is not yet newline (i.e., if Formatter is not at the
-// beginning of the new line).
-func (f *Formatter) forceNL() {
+// onNL returns true if formatter is at the beginning of new line
+func (f *Formatter) onNL() bool {
 	b := f.buf.Bytes()
-	if len(b) > 0 && b[len(b)-1] != '\n' {
+	return len(b) == 0 || b[len(b)-1] == '\n'
+}
+
+// forceNL inserts newline character if formatter is not at the
+// beginning of new line
+func (f *Formatter) forceNL() {
+	if !f.onNL() {
 		f.buf.WriteByte('\n')
 	}
 }
