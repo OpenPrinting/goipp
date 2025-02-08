@@ -43,15 +43,31 @@ func (g Group) Similar(g2 Group) bool {
 	return g.Tag == g2.Tag && g.Attrs.Similar(g2.Attrs)
 }
 
+// DeepCopy creates a deep copy of the Group
+func (g Group) DeepCopy() Group {
+	g2 := g
+	g2.Attrs = g.Attrs.DeepCopy()
+	return g2
+}
+
 // Add Group to Groups
 func (groups *Groups) Add(g Group) {
 	*groups = append(*groups, g)
 }
 
-// Clone creates a copy of Groups
+// Clone creates a shallow copy of Groups
 func (groups Groups) Clone() Groups {
 	groups2 := make(Groups, len(groups))
 	copy(groups2, groups)
+	return groups2
+}
+
+// DeepCopy creates a deep copy of Groups
+func (groups Groups) DeepCopy() Groups {
+	groups2 := make(Groups, len(groups))
+	for i := range groups {
+		groups2[i] = groups[i].DeepCopy()
+	}
 	return groups2
 }
 

@@ -21,10 +21,19 @@ func (attrs *Attributes) Add(attr Attribute) {
 	*attrs = append(*attrs, attr)
 }
 
-// Clone creates a copy of Attributes
+// Clone creates a shallow copy of Attributes
 func (attrs Attributes) Clone() Attributes {
 	attrs2 := make(Attributes, len(attrs))
 	copy(attrs2, attrs)
+	return attrs2
+}
+
+// DeepCopy creates a deep copy of Attributes
+func (attrs Attributes) DeepCopy() Attributes {
+	attrs2 := make(Attributes, len(attrs))
+	for i := range attrs {
+		attrs2[i] = attrs[i].DeepCopy()
+	}
 	return attrs2
 }
 
@@ -126,6 +135,13 @@ func (a Attribute) Equal(a2 Attribute) bool {
 // Attribute (i.e., names are the same and values are similar)
 func (a Attribute) Similar(a2 Attribute) bool {
 	return a.Name == a2.Name && a.Values.Similar(a2.Values)
+}
+
+// DeepCopy creates a deep copy of the Attribute
+func (a Attribute) DeepCopy() Attribute {
+	a2 := a
+	a2.Values = a2.Values.DeepCopy()
+	return a2
 }
 
 // Unpack attribute value from its wire representation

@@ -51,6 +51,23 @@ func (values Values) String() string {
 	return buf.String()
 }
 
+// Clone creates a shallow copy of Values
+func (values Values) Clone() Values {
+	values2 := make(Values, len(values))
+	copy(values2, values)
+	return values2
+}
+
+// DeepCopy creates a deep copy of Values
+func (values Values) DeepCopy() Values {
+	values2 := make(Values, len(values))
+	for i := range values {
+		values2[i].T = values[i].T
+		values2[i].V = values[i].V.DeepCopy()
+	}
+	return values2
+}
+
 // Equal performs deep check of equality of two Values
 func (values Values) Equal(values2 Values) bool {
 	if len(values) != len(values2) {
@@ -90,6 +107,7 @@ func (values Values) Similar(values2 Values) bool {
 type Value interface {
 	String() string
 	Type() Type
+	DeepCopy() Value
 	encode() ([]byte, error)
 	decode([]byte) (Value, error)
 }
@@ -190,6 +208,11 @@ func (Void) String() string { return "" }
 // Type returns type of Value (TypeVoid for Void)
 func (Void) Type() Type { return TypeVoid }
 
+// DeepCopy returns a deep copy of the Void Value
+func (v Void) DeepCopy() Value {
+	return v
+}
+
 // Encode Void Value into wire format
 func (v Void) encode() ([]byte, error) {
 	return []byte{}, nil
@@ -210,6 +233,11 @@ func (v Integer) String() string { return fmt.Sprintf("%d", int32(v)) }
 
 // Type returns type of Value (TypeInteger for Integer)
 func (Integer) Type() Type { return TypeInteger }
+
+// DeepCopy returns a deep copy of the Integer Value
+func (v Integer) DeepCopy() Value {
+	return v
+}
 
 // Within checks that x fits within the range
 //
@@ -243,6 +271,11 @@ func (v Boolean) String() string { return fmt.Sprintf("%t", bool(v)) }
 // Type returns type of Value (TypeBoolean for Boolean)
 func (Boolean) Type() Type { return TypeBoolean }
 
+// DeepCopy returns a deep copy of the Boolean Value
+func (v Boolean) DeepCopy() Value {
+	return v
+}
+
 // Encode Boolean Value into wire format
 func (v Boolean) encode() ([]byte, error) {
 	if v {
@@ -272,6 +305,11 @@ func (v String) String() string { return string(v) }
 // Type returns type of Value (TypeString for String)
 func (String) Type() Type { return TypeString }
 
+// DeepCopy returns a deep copy of the String Value
+func (v String) DeepCopy() Value {
+	return v
+}
+
 // Encode String Value into wire format
 func (v String) encode() ([]byte, error) {
 	return []byte(v), nil
@@ -292,6 +330,11 @@ func (v Time) String() string { return v.Time.Format(time.RFC3339) }
 
 // Type returns type of Value (TypeDateTime for Time)
 func (Time) Type() Type { return TypeDateTime }
+
+// DeepCopy returns a deep copy of the Time Value
+func (v Time) DeepCopy() Value {
+	return v
+}
 
 // Encode Time Value into wire format
 func (v Time) encode() ([]byte, error) {
@@ -415,6 +458,11 @@ func (v Resolution) String() string {
 // Type returns type of Value (TypeResolution for Resolution)
 func (Resolution) Type() Type { return TypeResolution }
 
+// DeepCopy returns a deep copy of the Resolution Value
+func (v Resolution) DeepCopy() Value {
+	return v
+}
+
 // Encode Resolution Value into wire format
 func (v Resolution) encode() ([]byte, error) {
 	// Wire format
@@ -481,6 +529,11 @@ func (v Range) String() string {
 // Type returns type of Value (TypeRange for Range)
 func (Range) Type() Type { return TypeRange }
 
+// DeepCopy returns a deep copy of the Range Value
+func (v Range) DeepCopy() Value {
+	return v
+}
+
 // Encode Range Value into wire format
 func (v Range) encode() ([]byte, error) {
 	// Wire format
@@ -516,8 +569,8 @@ func (Range) decode(data []byte) (Value, error) {
 
 // TextWithLang is the Value that represents a combination
 // of two strings:
-//   * text on some natural language (i.e., "hello")
-//   * name of that language (i.e., "en")
+//   - text on some natural language (i.e., "hello")
+//   - name of that language (i.e., "en")
 //
 // Use with: TagTextLang, TagNameLang
 type TextWithLang struct {
@@ -529,6 +582,11 @@ func (v TextWithLang) String() string { return v.Text + " [" + v.Lang + "]" }
 
 // Type returns type of Value (TypeTextWithLang for TextWithLang)
 func (TextWithLang) Type() Type { return TypeTextWithLang }
+
+// DeepCopy returns a deep copy of the TextWithLang Value
+func (v TextWithLang) DeepCopy() Value {
+	return v
+}
 
 // Encode TextWithLang Value into wire format
 func (v TextWithLang) encode() ([]byte, error) {
@@ -618,6 +676,13 @@ func (v Binary) String() string {
 // Type returns type of Value (TypeBinary for Binary)
 func (Binary) Type() Type { return TypeBinary }
 
+// DeepCopy returns a deep copy of the Binary Value
+func (v Binary) DeepCopy() Value {
+	v2 := make(Binary, len(v))
+	copy(v2, v)
+	return v2
+}
+
 // Encode TextWithLang Value into wire format
 func (v Binary) encode() ([]byte, error) {
 	return []byte(v), nil
@@ -660,6 +725,11 @@ func (v Collection) String() string {
 
 // Type returns type of Value (TypeCollection for Collection)
 func (Collection) Type() Type { return TypeCollection }
+
+// DeepCopy returns a deep copy of the Collection Value
+func (v Collection) DeepCopy() Value {
+	return Collection(Attributes(v).DeepCopy())
+}
 
 // Encode Collection Value into wire format
 func (Collection) encode() ([]byte, error) {

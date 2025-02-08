@@ -43,8 +43,9 @@ type errValue struct{}
 
 var _ = Value(errValue{})
 
-func (errValue) String() string { return "" }
-func (errValue) Type() Type     { return TypeInteger }
+func (errValue) String() string  { return "" }
+func (errValue) Type() Type      { return TypeInteger }
+func (errValue) DeepCopy() Value { return errValue{} }
 
 func (errValue) encode() ([]byte, error) {
 	return nil, errors.New("encode error")
