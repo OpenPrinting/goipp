@@ -41,7 +41,7 @@ func (me *messageEncoder) encode(m *Message) error {
 	}
 
 	// Encode attributes
-	for _, grp := range m.attrGroups() {
+	for _, grp := range m.AttrGroups() {
 		err = me.encodeTag(grp.Tag)
 		if err == nil {
 			for _, attr := range grp.Attrs {

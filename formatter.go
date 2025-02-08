@@ -124,7 +124,7 @@ func (f *Formatter) fmtMessage(msg *Message, request bool) {
 		f.Printf("STATUS %s", Status(msg.Code))
 	}
 
-	if groups := msg.attrGroups(); len(groups) != 0 {
+	if groups := msg.AttrGroups(); len(groups) != 0 {
 		f.Printf("")
 		f.FmtGroups(groups)
 	}

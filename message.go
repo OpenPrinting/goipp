@@ -181,8 +181,8 @@ func (m Message) Equal(m2 Message) bool {
 		return false
 	}
 
-	groups := m.attrGroups()
-	groups2 := m2.attrGroups()
+	groups := m.AttrGroups()
+	groups2 := m2.AttrGroups()
 
 	return groups.Equal(groups2)
 }
@@ -198,8 +198,8 @@ func (m Message) Similar(m2 Message) bool {
 		return false
 	}
 
-	groups := m.attrGroups()
-	groups2 := m2.attrGroups()
+	groups := m.AttrGroups()
+	groups2 := m2.AttrGroups()
 
 	return groups.Similar(groups2)
 }
@@ -274,7 +274,7 @@ func (m *Message) Print(out io.Writer, request bool) {
 		fmt.Fprintf(out, msgPrintIndent+"STATUS %s\n", Status(m.Code))
 	}
 
-	for _, grp := range m.attrGroups() {
+	for _, grp := range m.AttrGroups() {
 		fmt.Fprintf(out, "\n"+msgPrintIndent+"GROUP %s\n", grp.Tag)
 		for _, attr := range grp.Attrs {
 			m.printAttribute(out, attr, 1)
@@ -319,11 +319,17 @@ func (m *Message) printIndent(out io.Writer, indent int) {
 	}
 }
 
-// Get attributes by group. Groups with nil Attributes are skipped,
-// but groups with non-nil are not, even if len(Attributes) == 0
+// AttrGroups returns [Message] attributes as a sequence of
+// attribute groups.
 //
-// This is a helper function for message encoder and pretty-printer
-func (m *Message) attrGroups() Groups {
+// If [Message.Groups] is set, it will be returned.
+//
+// Otherwise, [Groups] will be reconstructed from [Message.Operation],
+// [Message.Job], [Message.Printer] and so on.
+//
+// Groups with nil [Group.Attrs] will be skipped, but groups with non-nil
+// will be not, even if len(Attrs) == 0
+func (m *Message) AttrGroups() Groups {
 	// If m.Groups is set, use it
 	if m.Groups != nil {
 		return m.Groups
