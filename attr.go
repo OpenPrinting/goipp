@@ -178,8 +178,9 @@ func (a *Attribute) unpack(tag Tag, value []byte) error {
 		val = Binary(nil)
 
 	default:
-		panic(fmt.Sprintf("(Attribute) uppack(): tag=%s type=%s", tag, tag.Type()))
+		return fmt.Errorf("(Attribute) unpack(): unexpected tag=%s type=%s", tag, tag.Type())
 	}
+
 
 	val, err = val.decode(value)
 
