@@ -1228,9 +1228,17 @@ func TestDecodeValueErrors(t *testing.T) {
 
 // Test TagExtension
 func TestTagExtension(t *testing.T) {
-	// Ensure extension tag encodes and decodes well
+	// Normal tag cannot exceed 0xff and there is no automatic
+	// conversion of the high-value tags into extended.
 	m1 := NewResponse(DefaultVersion, StatusOk, 0x12345678)
-	m1.Operation.Add(MakeAttribute("attr", 0x12345678,
+	m1.Operation.Add(MakeAttribute("attr", 0x100, Binary{1, 2, 3, 4, 5}))
+
+	_, err := m1.EncodeBytes()
+	assertErrorIs(t, err, "Tag 0x00000100 out of range")
+
+	// Ensure extension tag encodes and decodes well
+	m1 = NewResponse(DefaultVersion, StatusOk, 0x12345678)
+	m1.Operation.Add(MakeAttribute("attr", TagExtension,
 		Binary{1, 2, 3, 4, 5}))
 
 	data, err := m1.EncodeBytes()
@@ -1244,14 +1252,30 @@ func TestTagExtension(t *testing.T) {
 		t.Errorf("Message is not the same after encoding and decoding")
 	}
 
-	// Tag can't exceed 0x7fffffff, check that encoder validates it
+	// Extension tag requires Binary payload
 	m1 = NewResponse(DefaultVersion, StatusOk, 0x12345678)
-	tmp := uint32(0x81234567)
-	m1.Operation.Add(MakeAttribute("attr", Tag(tmp),
-		Binary{1, 2, 3, 4, 5}))
+	m1.Operation.Add(MakeAttribute("attr", TagExtension,
+		String("hello")))
 
 	_, err = m1.EncodeBytes()
-	assertErrorIs(t, err, "Tag 0x81234567 exceeds extension tag range")
+	assertErrorIs(t, err, "Tag extension: Binary value required, String present")
+
+	// Extension tag requires at least 4 bytes of payload
+	m1 = NewResponse(DefaultVersion, StatusOk, 0x12345678)
+	m1.Operation.Add(MakeAttribute("attr", TagExtension,
+		Binary{1, 2, 3}))
+
+	_, err = m1.EncodeBytes()
+	assertErrorIs(t, err, "Extension tag truncated")
+
+	// Extension tag can't exceed 0x7fffffff, check that encoder
+	// validates it.
+	m1 = NewResponse(DefaultVersion, StatusOk, 0x12345678)
+	m1.Operation.Add(MakeAttribute("attr", TagExtension,
+		Binary{0x80, 1, 2, 3, 4, 5}))
+
+	_, err = m1.EncodeBytes()
+	assertErrorIs(t, err, "Extension tag 0x80010203 out of range")
 
 	// Now prepare to decoder tests
 	var d []byte
@@ -1293,7 +1317,22 @@ func TestTagExtension(t *testing.T) {
 
 	d = append(hdr, body...)
 	err = m.DecodeBytes(d)
-	assertErrorIs(t, err, "Extension tag out of range")
+	assertErrorIs(t, err, "Extension tag 0xffffffff out of range")
+
+	// Extension tag with the small value is OK
+	body = []byte{
+		uint8(TagJobGroup),
+		uint8(TagExtension),
+		0x00, 0x04, // Name length + name
+		'a', 't', 't', 'r',
+		0x00, 0x08, // Value length + value
+		0x00, 0x00, 0x00, 0x01, 0, 0, 0, 0,
+		uint8(TagEnd),
+	}
+
+	d = append(hdr, body...)
+	err = m.DecodeBytes(d)
+	assertNoError(t, err)
 }
 
 // Test message decoding
