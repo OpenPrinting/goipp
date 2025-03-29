@@ -510,7 +510,7 @@ func (u Units) String() string {
 	case UnitsDpcm:
 		return "dpcm"
 	default:
-		return fmt.Sprintf("0x%2.2x", uint8(u))
+		return fmt.Sprintf("unknown(0x%2.2x)", uint8(u))
 	}
 }
 
