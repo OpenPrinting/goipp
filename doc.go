@@ -139,7 +139,6 @@ response messages
 
 	    httpReq.Header.Set("content-type", goipp.ContentType)
 	    httpReq.Header.Set("accept", goipp.ContentType)
-	    httpReq.Header.Set("accept-encoding", "gzip, deflate, identity")
 
 	    // Execute HTTP request
 	    httpRsp, err := http.DefaultClient.Do(httpReq)
