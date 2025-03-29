@@ -707,11 +707,6 @@ func (v *Collection) Add(attr Attribute) {
 	*v = append(*v, attr)
 }
 
-// Equal checks that two collections are equal
-func (v Collection) Equal(v2 Attributes) bool {
-	return Attributes(v).Equal(Attributes(v2))
-}
-
 // String converts Collection to string
 func (v Collection) String() string {
 	var buf bytes.Buffer
