@@ -68,7 +68,9 @@ func (values Values) DeepCopy() Values {
 	return values2
 }
 
-// Equal performs deep check of equality of two Values
+// Equal performs deep check of equality of two Values.
+//
+// Note, Values(nil) and Values{} are not Equal but Similar.
 func (values Values) Equal(values2 Values) bool {
 	if len(values) != len(values2) {
 		return false
@@ -89,6 +91,8 @@ func (values Values) Equal(values2 Values) bool {
 }
 
 // Similar performs deep check of **logical** equality of two Values
+//
+// Note, Values(nil) and Values{} are not Equal but Similar.
 func (values Values) Similar(values2 Values) bool {
 	if len(values) != len(values2) {
 		return false
