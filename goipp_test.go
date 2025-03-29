@@ -124,7 +124,8 @@ func assertDecodeErr(t *testing.T, data []byte, val Value) {
 // parseTime parses time given in time.Layout format.
 // this function panics if time cannot be parsed
 func parseTime(s string) Time {
-	t, err := time.Parse(time.Layout, s)
+	const layout = "01/02 03:04:05PM '06 -0700" // Missed in go 1.11
+	t, err := time.Parse(layout, s)
 	if err != nil {
 		panic(fmt.Sprintf("parseTime(%q): %s", s, err))
 	}
