@@ -74,6 +74,10 @@ func (values Values) Equal(values2 Values) bool {
 		return false
 	}
 
+	if (values == nil) != (values2 == nil) {
+		return false
+	}
+
 	for i, v := range values {
 		v2 := values2[i]
 		if v.T != v2.T || !ValueEqual(v.V, v2.V) {
