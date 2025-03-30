@@ -208,6 +208,7 @@ func TestValueDecode(t *testing.T) {
 		{[]byte{1}, Boolean(true), ""},
 		{[]byte{0, 1}, Boolean(false), "value must be 1 byte"},
 		{[]byte{1, 2, 3, 4}, Integer(0x01020304), ""},
+		{[]byte{0xff, 0xff, 0xff, 0xff}, Integer(-1), ""},
 		{[]byte{}, Integer(0), "value must be 4 bytes"},
 		{[]byte{1, 2, 3, 4, 5}, Integer(0), "value must be 4 bytes"},
 		{[]byte{}, Void{}, ""},
@@ -218,6 +219,13 @@ func TestValueDecode(t *testing.T) {
 		{
 			data: []byte{1, 2, 3, 4, 5, 6, 7, 8},
 			v:    Range{0x01020304, 0x05060708},
+		},
+
+		{
+			data: []byte{
+				0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+			},
+			v: Range{-1, -1},
 		},
 
 		{
@@ -236,6 +244,13 @@ func TestValueDecode(t *testing.T) {
 		{
 			data: []byte{1, 2, 3, 4, 5, 6, 7, 8, 9},
 			v:    Resolution{0x01020304, 0x05060708, 0x09},
+		},
+
+		{
+			data: []byte{
+				0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 9,
+			},
+			v: Resolution{-1, -1, 0x09},
 		},
 
 		{

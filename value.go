@@ -273,7 +273,7 @@ func (Integer) decode(data []byte) (Value, error) {
 		return nil, errors.New("value must be 4 bytes")
 	}
 
-	return Integer(binary.BigEndian.Uint32(data)), nil
+	return Integer(int32(binary.BigEndian.Uint32(data))), nil
 }
 
 // Boolean is the Value that contains true of false
@@ -502,8 +502,8 @@ func (Resolution) decode(data []byte) (Value, error) {
 	}
 
 	return Resolution{
-		Xres:  int(binary.BigEndian.Uint32(data[0:4])),
-		Yres:  int(binary.BigEndian.Uint32(data[4:8])),
+		Xres:  int(int32(binary.BigEndian.Uint32(data[0:4]))),
+		Yres:  int(int32(binary.BigEndian.Uint32(data[4:8]))),
 		Units: Units(data[8]),
 	}, nil
 
@@ -578,8 +578,8 @@ func (Range) decode(data []byte) (Value, error) {
 	}
 
 	return Range{
-		Lower: int(binary.BigEndian.Uint32(data[0:4])),
-		Upper: int(binary.BigEndian.Uint32(data[4:8])),
+		Lower: int(int32(binary.BigEndian.Uint32(data[0:4]))),
+		Upper: int(int32(binary.BigEndian.Uint32(data[4:8]))),
 	}, nil
 }
 
