@@ -21,18 +21,26 @@ func (attrs *Attributes) Add(attr Attribute) {
 	*attrs = append(*attrs, attr)
 }
 
-// Clone creates a shallow copy of Attributes
+// Clone creates a shallow copy of Attributes.
+// For nil input it returns nil output.
 func (attrs Attributes) Clone() Attributes {
-	attrs2 := make(Attributes, len(attrs))
-	copy(attrs2, attrs)
+	var attrs2 Attributes
+	if attrs != nil {
+		attrs2 = make(Attributes, len(attrs))
+		copy(attrs2, attrs)
+	}
 	return attrs2
 }
 
-// DeepCopy creates a deep copy of Attributes
+// DeepCopy creates a deep copy of Attributes.
+// For nil input it returns nil output.
 func (attrs Attributes) DeepCopy() Attributes {
-	attrs2 := make(Attributes, len(attrs))
-	for i := range attrs {
-		attrs2[i] = attrs[i].DeepCopy()
+	var attrs2 Attributes
+	if attrs != nil {
+		attrs2 = make(Attributes, len(attrs))
+		for i := range attrs {
+			attrs2[i] = attrs[i].DeepCopy()
+		}
 	}
 	return attrs2
 }
