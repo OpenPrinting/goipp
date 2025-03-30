@@ -38,8 +38,14 @@ func (attrs Attributes) DeepCopy() Attributes {
 }
 
 // Equal checks that attrs and attrs2 are equal
+//
+// Note, Attributes(nil) and Attributes{} are not Equal but Similar.
 func (attrs Attributes) Equal(attrs2 Attributes) bool {
 	if len(attrs) != len(attrs2) {
+		return false
+	}
+
+	if (attrs == nil) != (attrs2 == nil) {
 		return false
 	}
 
@@ -59,6 +65,8 @@ func (attrs Attributes) Equal(attrs2 Attributes) bool {
 //     but may be differently ordered
 //   - Values of attributes of the same name within attrs and
 //     attrs2 are similar
+//
+// Note, Attributes(nil) and Attributes{} are not Equal but Similar.
 func (attrs Attributes) Similar(attrs2 Attributes) bool {
 	// Fast check: if lengths are not the same, attributes
 	// are definitely not equal
