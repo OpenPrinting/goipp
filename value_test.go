@@ -820,7 +820,7 @@ func TestValuesEqualSimilar(t *testing.T) {
 	type testData struct {
 		v1, v2  Values // A pair of values
 		equal   bool   // Expected v1.Equal(v2) output
-		similar bool   // Expected v2.Similar(v1,v2) output
+		similar bool   // Expected v2.Similar(v2) output
 	}
 
 	tests := []testData{
