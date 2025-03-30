@@ -43,6 +43,13 @@ func (g Group) Similar(g2 Group) bool {
 	return g.Tag == g2.Tag && g.Attrs.Similar(g2.Attrs)
 }
 
+// Clone creates a shallow copy of the Group
+func (g Group) Clone() Group {
+	g2 := g
+	g2.Attrs = g.Attrs.Clone()
+	return g2
+}
+
 // DeepCopy creates a deep copy of the Group
 func (g Group) DeepCopy() Group {
 	g2 := g
