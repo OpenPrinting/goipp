@@ -51,19 +51,27 @@ func (values Values) String() string {
 	return buf.String()
 }
 
-// Clone creates a shallow copy of Values
+// Clone creates a shallow copy of Values.
+// For nil input it returns nil output.
 func (values Values) Clone() Values {
-	values2 := make(Values, len(values))
-	copy(values2, values)
+	var values2 Values
+	if values != nil {
+		values2 = make(Values, len(values))
+		copy(values2, values)
+	}
 	return values2
 }
 
 // DeepCopy creates a deep copy of Values
+// For nil input it returns nil output.
 func (values Values) DeepCopy() Values {
-	values2 := make(Values, len(values))
-	for i := range values {
-		values2[i].T = values[i].T
-		values2[i].V = values[i].V.DeepCopy()
+	var values2 Values
+	if values != nil {
+		values2 = make(Values, len(values))
+		for i := range values {
+			values2[i].T = values[i].T
+			values2[i].V = values[i].V.DeepCopy()
+		}
 	}
 	return values2
 }

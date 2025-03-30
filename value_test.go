@@ -958,15 +958,36 @@ func TestValuesCopy(t *testing.T) {
 	values.Add(TagBeginCollection,
 		Collection{MakeAttribute("test", TagString, String(""))})
 
-	clone := values.Clone()
-	copy := values.DeepCopy()
-
-	if !values.Equal(clone) {
-		t.Errorf("Values.Clone test failed")
+	type testData struct {
+		values Values
 	}
 
-	if !values.Equal(copy) {
-		t.Errorf("Values.DeepCopy test failed")
+	tests := []testData{
+		{nil},
+		{Values{}},
+		{values},
+	}
+
+	for _, test := range tests {
+		clone := test.values.Clone()
+		if !test.values.Equal(clone) {
+			t.Errorf("testing Attributes.Clone\n"+
+				"expected: %#v\n"+
+				"present:  %#v\n",
+				test.values,
+				clone,
+			)
+		}
+
+		copy := test.values.DeepCopy()
+		if !test.values.Equal(copy) {
+			t.Errorf("testing Attributes.DeepCopy\n"+
+				"expected: %#v\n"+
+				"present:  %#v\n",
+				test.values,
+				copy,
+			)
+		}
 	}
 }
 
