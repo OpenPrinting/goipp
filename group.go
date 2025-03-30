@@ -78,9 +78,15 @@ func (groups Groups) DeepCopy() Groups {
 	return groups2
 }
 
-// Equal checks that groups and groups2 are equal
+// Equal checks that groups and groups2 are equal.
+//
+// Note, Groups(nil) and Groups{} are not equal but similar.
 func (groups Groups) Equal(groups2 Groups) bool {
 	if len(groups) != len(groups2) {
+		return false
+	}
+
+	if (groups == nil) != (groups2 == nil) {
 		return false
 	}
 
@@ -101,6 +107,8 @@ func (groups Groups) Equal(groups2 Groups) bool {
 //     be reordered between each other.
 //   - groups with the same tag cannot be reordered.
 //   - attributes of corresponding groups are similar.
+//
+// Note, Groups(nil) and Groups{} are not equal but similar.
 func (groups Groups) Similar(groups2 Groups) bool {
 	// Fast check: if lengths are not the same, groups
 	// are definitely not equal
