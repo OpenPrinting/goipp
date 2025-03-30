@@ -62,18 +62,26 @@ func (groups *Groups) Add(g Group) {
 	*groups = append(*groups, g)
 }
 
-// Clone creates a shallow copy of Groups
+// Clone creates a shallow copy of Groups.
+// For nil input it returns nil output.
 func (groups Groups) Clone() Groups {
-	groups2 := make(Groups, len(groups))
-	copy(groups2, groups)
+	var groups2 Groups
+	if groups != nil {
+		groups2 = make(Groups, len(groups))
+		copy(groups2, groups)
+	}
 	return groups2
 }
 
-// DeepCopy creates a deep copy of Groups
+// DeepCopy creates a deep copy of Groups.
+// For nil input it returns nil output.
 func (groups Groups) DeepCopy() Groups {
-	groups2 := make(Groups, len(groups))
-	for i := range groups {
-		groups2[i] = groups[i].DeepCopy()
+	var groups2 Groups
+	if groups != nil {
+		groups2 = make(Groups, len(groups))
+		for i := range groups {
+			groups2[i] = groups[i].DeepCopy()
+		}
 	}
 	return groups2
 }
