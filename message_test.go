@@ -113,3 +113,169 @@ func TestNewRequestResponse(t *testing.T) {
 		)
 	}
 }
+
+// TestNewMessageWithGroups tests the NewMessageWithGroups function.
+func TestNewMessageWithGroups(t *testing.T) {
+	// Populate groups
+	ops := Group{
+		TagOperationGroup,
+		Attributes{
+			MakeAttr("ops", TagInteger, Integer(1)),
+		},
+	}
+
+	prn1 := Group{
+		TagPrinterGroup,
+		Attributes{
+			MakeAttr("prn1", TagInteger, Integer(2)),
+		},
+	}
+
+	prn2 := Group{
+		TagPrinterGroup,
+		Attributes{
+			MakeAttr("prn2", TagInteger, Integer(3)),
+		},
+	}
+
+	prn3 := Group{
+		TagPrinterGroup,
+		Attributes{
+			MakeAttr("prn3", TagInteger, Integer(4)),
+		},
+	}
+
+	job := Group{
+		TagJobGroup,
+		Attributes{
+			MakeAttr("job", TagInteger, Integer(5)),
+		},
+	}
+
+	unsupp := Group{
+		TagUnsupportedGroup,
+		Attributes{
+			MakeAttr("unsupp", TagInteger, Integer(6)),
+		},
+	}
+
+	sub := Group{
+		TagSubscriptionGroup,
+		Attributes{
+			MakeAttr("sub", TagInteger, Integer(7)),
+		},
+	}
+
+	evnt := Group{
+		TagEventNotificationGroup,
+		Attributes{
+			MakeAttr("evnt", TagInteger, Integer(8)),
+		},
+	}
+
+	res := Group{
+		TagResourceGroup,
+		Attributes{
+			MakeAttr("res", TagInteger, Integer(9)),
+		},
+	}
+
+	doc := Group{
+		TagDocumentGroup,
+		Attributes{
+			MakeAttr("doc", TagInteger, Integer(10)),
+		},
+	}
+
+	sys := Group{
+		TagSystemGroup,
+		Attributes{
+			MakeAttr("sys", TagInteger, Integer(11)),
+		},
+	}
+
+	future11 := Group{
+		TagFuture11Group,
+		Attributes{
+			MakeAttr("future11", TagInteger, Integer(12)),
+		},
+	}
+
+	future12 := Group{
+		TagFuture12Group,
+		Attributes{
+			MakeAttr("future12", TagInteger, Integer(13)),
+		},
+	}
+
+	future13 := Group{
+		TagFuture13Group,
+		Attributes{
+			MakeAttr("future13", TagInteger, Integer(14)),
+		},
+	}
+
+	future14 := Group{
+		TagFuture14Group,
+		Attributes{
+			MakeAttr("future14", TagInteger, Integer(15)),
+		},
+	}
+
+	future15 := Group{
+		TagFuture15Group,
+		Attributes{
+			MakeAttr("future15", TagInteger, Integer(16)),
+		},
+	}
+
+	groups := Groups{
+		ops,
+		prn1, prn2, prn3,
+		job,
+		unsupp,
+		sub,
+		evnt,
+		res,
+		doc,
+		sys,
+		future11,
+		future12,
+		future13,
+		future14,
+		future15,
+	}
+
+	msg := NewMessageWithGroups(DefaultVersion, 1, 123, groups)
+	expected := &Message{
+		Version:           DefaultVersion,
+		Code:              1,
+		RequestID:         123,
+		Groups:            groups,
+		Operation:         ops.Attrs,
+		Job:               job.Attrs,
+		Unsupported:       unsupp.Attrs,
+		Subscription:      sub.Attrs,
+		EventNotification: evnt.Attrs,
+		Resource:          res.Attrs,
+		Document:          doc.Attrs,
+		System:            sys.Attrs,
+		Future11:          future11.Attrs,
+		Future12:          future12.Attrs,
+		Future13:          future13.Attrs,
+		Future14:          future14.Attrs,
+		Future15:          future15.Attrs,
+	}
+	expected.Printer = prn1.Attrs
+	expected.Printer = append(expected.Printer, prn2.Attrs...)
+	expected.Printer = append(expected.Printer, prn3.Attrs...)
+
+	if !reflect.DeepEqual(msg, expected) {
+		t.Errorf("NewMessageWithGroups test failed:\n"+
+			"expected: %#v\n"+
+			"present:  %#v\n",
+			expected,
+			msg,
+		)
+	}
+}
