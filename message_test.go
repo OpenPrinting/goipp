@@ -279,3 +279,72 @@ func TestNewMessageWithGroups(t *testing.T) {
 		)
 	}
 }
+
+// TestNewMessageWithGroups tests the Message.AttrGroups function.
+func TestMessageAttrGroups(t *testing.T) {
+	// Create a message for testing
+	uri := "ipp://192/168.0.1/ipp/print"
+
+	m := NewRequest(DefaultVersion, OpCreateJob, 1)
+
+	m.Operation.Add(MakeAttr("attributes-charset",
+		TagCharset, String("utf-8")))
+	m.Operation.Add(MakeAttr("attributes-natural-language",
+		TagLanguage, String("en-US")))
+	m.Operation.Add(MakeAttr("printer-uri",
+		TagURI, String(uri)))
+
+	m.Job.Add(MakeAttr("copies", TagInteger, Integer(1)))
+
+	// Compare m.AttrGroups() with expectations
+	groups := m.AttrGroups()
+	expected := Groups{
+		Group{
+			Tag: TagOperationGroup,
+			Attrs: Attributes{
+				MakeAttr("attributes-charset",
+					TagCharset, String("utf-8")),
+				MakeAttr("attributes-natural-language",
+					TagLanguage, String("en-US")),
+				MakeAttr("printer-uri",
+					TagURI, String(uri)),
+			},
+		},
+		Group{
+			Tag: TagJobGroup,
+			Attrs: Attributes{
+				MakeAttr("copies", TagInteger, Integer(1)),
+			},
+		},
+	}
+
+	if !reflect.DeepEqual(groups, expected) {
+		t.Errorf("Message.AttrGroups test failed:\n"+
+			"expected: %#v\n"+
+			"present:  %#v\n",
+			expected, groups,
+		)
+	}
+
+	// Set m.Groups. Check that it takes precedence.
+	expected = Groups{
+		Group{
+			Tag: TagOperationGroup,
+			Attrs: Attributes{
+				MakeAttr("attributes-charset",
+					TagCharset, String("utf-8")),
+			},
+		},
+	}
+
+	m.Groups = expected
+	groups = m.AttrGroups()
+
+	if !reflect.DeepEqual(groups, expected) {
+		t.Errorf("Message.AttrGroups test failed:\n"+
+			"expected: %#v\n"+
+			"present:  %#v\n",
+			expected, groups,
+		)
+	}
+}
