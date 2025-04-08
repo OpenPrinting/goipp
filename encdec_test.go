@@ -867,7 +867,7 @@ func testDecode(t *testing.T, data []byte, opt DecoderOptions,
 	mustFail, mustEncode bool) {
 
 	var m Message
-	err := m.DecodeEx(bytes.NewBuffer(data), opt)
+	err := m.DecodeBytesEx(data, opt)
 
 	if mustFail {
 		assertWithError(t, err)
