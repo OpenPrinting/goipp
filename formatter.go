@@ -20,13 +20,6 @@ const (
 	// FormatterIndentShift is the indentation shift, number of space
 	// characters per indentation level.
 	FormatterIndentShift = 4
-
-	// FormatterMaxWidth is the maximum text width Formatter attempts to
-	// achieve.
-	//
-	// If text appears to be too wide, Formatter will try to use
-	// mukti-line output, where possible.
-	FormatterMaxWidth = 78
 )
 
 // Formatter formats IPP messages, attributes, groups etc
