@@ -40,12 +40,12 @@ type Formatter struct {
 	buf        bytes.Buffer // Output buffer
 }
 
-// NewFormatter returns a new Formatter
+// NewFormatter returns a new Formatter.
 func NewFormatter() *Formatter {
 	return &Formatter{}
 }
 
-// Reset resets the formatter
+// Reset resets the formatter.
 func (f *Formatter) Reset() {
 	f.buf.Reset()
 	f.indent = 0
@@ -61,12 +61,12 @@ func (f *Formatter) SetIndent(n int) {
 	}
 }
 
-// Bytes returns formatted text as a byte slice
+// Bytes returns formatted text as a byte slice.
 func (f *Formatter) Bytes() []byte {
 	return f.buf.Bytes()
 }
 
-// String returns formatted text as a string
+// String returns formatted text as a string.
 func (f *Formatter) String() string {
 	return f.buf.String()
 }
@@ -77,7 +77,7 @@ func (f *Formatter) WriteTo(w io.Writer) (int64, error) {
 	return f.buf.WriteTo(w)
 }
 
-// Printf writes formatted line into the [Pager], automatically
+// Printf writes formatted line into the [Formatter], automatically
 // indented and with added newline at the end.
 //
 // It returns the number of bytes written and nil as an error (for
@@ -110,7 +110,7 @@ func (f *Formatter) FmtResponse(msg *Message) {
 	f.fmtMessage(msg, false)
 }
 
-// fmtMessage formats a request or response Message
+// fmtMessage formats a request or response Message.
 func (f *Formatter) fmtMessage(msg *Message, request bool) {
 	f.Printf("{")
 	f.indent++
@@ -161,7 +161,7 @@ func (f *Formatter) FmtAttribute(attr Attribute) {
 	f.fmtAttributeOrMember(attr, false)
 }
 
-// FmtAttributes formats a single [Attribute] or collection member
+// FmtAttributes formats a single [Attribute] or collection member.
 func (f *Formatter) fmtAttributeOrMember(attr Attribute, member bool) {
 	buf := &f.buf
 
@@ -202,13 +202,13 @@ func (f *Formatter) fmtAttributeOrMember(attr Attribute, member bool) {
 	f.forceNL()
 }
 
-// onNL returns true if formatter is at the beginning of new line
+// onNL returns true if Formatter is at the beginning of new line.
 func (f *Formatter) onNL() bool {
 	b := f.buf.Bytes()
 	return len(b) == 0 || b[len(b)-1] == '\n'
 }
 
-// forceNL inserts newline character if formatter is not at the
+// forceNL inserts newline character if Formatter is not at the.
 // beginning of new line
 func (f *Formatter) forceNL() {
 	if !f.onNL() {
