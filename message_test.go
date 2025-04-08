@@ -472,7 +472,7 @@ func TestMessageEqualSimilar(t *testing.T) {
 		if equal != test.equal {
 			var buf1, buf2 bytes.Buffer
 			test.m1.Print(&buf1, true)
-			test.m2.Print(&buf1, true)
+			test.m2.Print(&buf2, true)
 
 			t.Errorf("testing Message.Equal:\n"+
 				"message 1: %s\n"+
@@ -488,7 +488,7 @@ func TestMessageEqualSimilar(t *testing.T) {
 		if similar != test.similar {
 			var buf1, buf2 bytes.Buffer
 			test.m1.Print(&buf1, true)
-			test.m2.Print(&buf1, true)
+			test.m2.Print(&buf2, true)
 
 			t.Errorf("testing Message.Similar:\n"+
 				"message 1: %s\n"+
