@@ -501,3 +501,35 @@ func TestMessageEqualSimilar(t *testing.T) {
 		}
 	}
 }
+
+// TestMessageReset tests Message.Reset function
+func TestMessageReset(t *testing.T) {
+	uri := "ipp://192/168.0.1/ipp/print"
+	m := Message{
+		Groups: Groups{
+			Group{
+				Tag: TagOperationGroup,
+				Attrs: Attributes{
+					MakeAttr("attributes-charset",
+						TagCharset, String("utf-8")),
+					MakeAttr("attributes-natural-language",
+						TagLanguage, String("en-US")),
+					MakeAttr("printer-uri",
+						TagURI, String(uri)),
+				},
+			},
+			Group{
+				Tag: TagJobGroup,
+				Attrs: Attributes{
+					MakeAttr("copies", TagInteger, Integer(1)),
+				},
+			},
+		},
+	}
+
+	m.Reset()
+
+	if !reflect.ValueOf(m).IsZero() {
+		t.Errorf("Message.Reset test failed")
+	}
+}
