@@ -45,6 +45,19 @@ func TestFmtAttribute(t *testing.T) {
 			},
 		},
 
+		// Simple test with huge indentation
+		{
+			attr: MakeAttr(
+				"attributes-charset",
+				TagCharset,
+				String("utf-8")),
+			indent: 123,
+			out: []string{
+				strings.Repeat(" ", 123) +
+					`ATTR "attributes-charset" charset: utf-8`,
+			},
+		},
+
 		// Collection
 		{
 			attr: MakeAttrCollection("media-col",
@@ -262,5 +275,46 @@ func TestFmtRequestResponse(t *testing.T) {
 				"present:\n%s",
 				expected, out)
 		}
+	}
+}
+
+// TestFmtBytes tests Formatter.Bytes function
+func TestFmtBytes(t *testing.T) {
+	msg := &Message{
+		Version:   MakeVersion(2, 0),
+		Code:      Code(OpGetPrinterAttributes),
+		RequestID: 1,
+
+		Operation: []Attribute{
+			MakeAttribute(
+				"attributes-charset",
+				TagCharset,
+				String("utf-8")),
+			MakeAttribute(
+				"attributes-natural-language",
+				TagLanguage,
+				String("en-us")),
+			MakeAttribute(
+				"requested-attributes",
+				TagKeyword,
+				String("printer-name")),
+		},
+	}
+
+	f := NewFormatter()
+	f.FmtRequest(msg)
+
+	s := f.String()
+	b := f.Bytes()
+
+	// Note, we've already tested f.String() function in the previous
+	// tests, so f.Bytes() is tested against it
+	if string(b) != s {
+		t.Errorf("Formatter.Bytes test failed:\n"+
+			"expected: %s\n"+
+			"present:  %s\n",
+			s,
+			b,
+		)
 	}
 }
