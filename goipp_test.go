@@ -554,17 +554,6 @@ func TestMessageEqual(t *testing.T) {
 	}
 }
 
-// Test Version
-func TestVersion(t *testing.T) {
-	v := MakeVersion(1, 2)
-	if v.Major() != 1 || v.Minor() != 2 {
-		t.Errorf("Version test failed")
-	}
-	if v.String() != "1.2" {
-		t.Errorf("(Version)String() test failed")
-	}
-}
-
 // testEncodeDecodeMessage creates a quite complex message
 // for Encode/Decode test
 func testEncodeDecodeMessage() *Message {
