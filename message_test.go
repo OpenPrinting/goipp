@@ -9,6 +9,7 @@
 package goipp
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 )
@@ -346,5 +347,157 @@ func TestMessageAttrGroups(t *testing.T) {
 			"present:  %#v\n",
 			expected, groups,
 		)
+	}
+}
+
+// TestMessageEqualSimilar tests Message.Equal and Message.Similar functions.
+func TestMessageEqualSimilar(t *testing.T) {
+	type testData struct {
+		m1, m2  Message // Input messages
+		equal   bool    // Expected Message.Equal output
+		similar bool    // Expected Message.Similar output
+	}
+
+	uri := "ipp://192/168.0.1/ipp/print"
+
+	tests := []testData{
+		// Empty messages are equal and similar
+		{
+			m1:      Message{},
+			m2:      Message{},
+			equal:   true,
+			similar: true,
+		},
+
+		// Messages with different Version/Code/RequestID are
+		// neither equal or similar
+		{
+			m1:      Message{},
+			m2:      Message{Version: 1},
+			equal:   false,
+			similar: false,
+		},
+
+		{
+			m1:      Message{},
+			m2:      Message{Code: 1},
+			equal:   false,
+			similar: false,
+		},
+
+		{
+			m1:      Message{},
+			m2:      Message{RequestID: 1},
+			equal:   false,
+			similar: false,
+		},
+
+		// If the same attributes represented as Message.Groups in one
+		// message and via Message.Operation/Job/Printer etc in the
+		// another message, these messages are equal and similar
+		{
+			m1: Message{
+				Groups: Groups{
+					Group{
+						Tag: TagOperationGroup,
+						Attrs: Attributes{
+							MakeAttr("attributes-charset",
+								TagCharset, String("utf-8")),
+							MakeAttr("attributes-natural-language",
+								TagLanguage, String("en-US")),
+							MakeAttr("printer-uri",
+								TagURI, String(uri)),
+						},
+					},
+					Group{
+						Tag: TagJobGroup,
+						Attrs: Attributes{
+							MakeAttr("copies", TagInteger, Integer(1)),
+						},
+					},
+				},
+			},
+
+			m2: Message{
+				Operation: Attributes{
+					MakeAttr("attributes-charset",
+						TagCharset, String("utf-8")),
+					MakeAttr("attributes-natural-language",
+						TagLanguage, String("en-US")),
+					MakeAttr("printer-uri",
+						TagURI, String(uri)),
+				},
+
+				Job: Attributes{
+					MakeAttr("copies", TagInteger, Integer(1)),
+				},
+			},
+
+			equal:   true,
+			similar: true,
+		},
+
+		// Messages with the different order of the same set of attributes
+		// are similar but not equal.
+		{
+			m1: Message{
+				Operation: Attributes{
+					MakeAttr("attributes-charset",
+						TagCharset, String("utf-8")),
+					MakeAttr("attributes-natural-language",
+						TagLanguage, String("en-US")),
+					MakeAttr("printer-uri",
+						TagURI, String(uri)),
+				},
+			},
+
+			m2: Message{
+				Operation: Attributes{
+					MakeAttr("attributes-charset",
+						TagCharset, String("utf-8")),
+					MakeAttr("printer-uri",
+						TagURI, String(uri)),
+					MakeAttr("attributes-natural-language",
+						TagLanguage, String("en-US")),
+				},
+			},
+
+			equal:   false,
+			similar: true,
+		},
+	}
+
+	for _, test := range tests {
+		equal := test.m1.Equal(test.m2)
+		if equal != test.equal {
+			var buf1, buf2 bytes.Buffer
+			test.m1.Print(&buf1, true)
+			test.m2.Print(&buf1, true)
+
+			t.Errorf("testing Message.Equal:\n"+
+				"message 1: %s\n"+
+				"message 2: %s\n"+
+				"expected:  %v\n"+
+				"present:   %v\n",
+				&buf1, &buf2,
+				test.equal, equal,
+			)
+		}
+
+		similar := test.m1.Similar(test.m2)
+		if similar != test.similar {
+			var buf1, buf2 bytes.Buffer
+			test.m1.Print(&buf1, true)
+			test.m2.Print(&buf1, true)
+
+			t.Errorf("testing Message.Similar:\n"+
+				"message 1: %s\n"+
+				"message 2: %s\n"+
+				"expected:  %v\n"+
+				"present:   %v\n",
+				&buf1, &buf2,
+				test.similar, similar,
+			)
+		}
 	}
 }
