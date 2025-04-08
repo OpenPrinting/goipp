@@ -11,6 +11,7 @@ package goipp
 import (
 	"bytes"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -531,5 +532,93 @@ func TestMessageReset(t *testing.T) {
 
 	if !reflect.ValueOf(m).IsZero() {
 		t.Errorf("Message.Reset test failed")
+	}
+}
+
+// TestMessagePrint tests Message.Print function
+func TestMessagePrint(t *testing.T) {
+	uri := "ipp://192/168.0.1/ipp/print"
+	m := Message{
+		Code:      2,
+		Version:   MakeVersion(2, 0),
+		RequestID: 1,
+		Groups: Groups{
+			Group{
+				Tag: TagOperationGroup,
+				Attrs: Attributes{
+					MakeAttr("attributes-charset",
+						TagCharset, String("utf-8")),
+					MakeAttr("attributes-natural-language",
+						TagLanguage, String("en-US")),
+					MakeAttr("printer-uri",
+						TagURI, String(uri)),
+				},
+			},
+			Group{
+				Tag: TagJobGroup,
+				Attrs: Attributes{
+					MakeAttr("copies", TagInteger, Integer(1)),
+				},
+			},
+		},
+	}
+
+	// Check request formatting
+	reqExpected := []string{
+		`{`,
+		`    REQUEST-ID 1`,
+		`    VERSION 2.0`,
+		`    OPERATION Print-Job`,
+		``,
+		`    GROUP operation-attributes-tag`,
+		`    ATTR "attributes-charset" charset: utf-8`,
+		`    ATTR "attributes-natural-language" naturalLanguage: en-US`,
+		`    ATTR "printer-uri" uri: ipp://192/168.0.1/ipp/print`,
+		``,
+		`    GROUP job-attributes-tag`,
+		`    ATTR "copies" integer: 1`,
+		`}`,
+	}
+
+	var buf bytes.Buffer
+	m.Print(&buf, true)
+	exp := strings.Join(reqExpected, "\n") + "\n"
+
+	if buf.String() != exp {
+		t.Errorf("Message.Print test failed for request:\n"+
+			"expected: %s\n"+
+			"present:  %s\n",
+			exp, &buf,
+		)
+	}
+
+	// Check response formatting
+	rspExpected := []string{
+		`{`,
+		`    REQUEST-ID 1`,
+		`    VERSION 2.0`,
+		`    STATUS successful-ok`,
+		``,
+		`    GROUP operation-attributes-tag`,
+		`    ATTR "attributes-charset" charset: utf-8`,
+		`    ATTR "attributes-natural-language" naturalLanguage: en-US`,
+		`    ATTR "printer-uri" uri: ipp://192/168.0.1/ipp/print`,
+		``,
+		`    GROUP job-attributes-tag`,
+		`    ATTR "copies" integer: 1`,
+		`}`,
+	}
+
+	buf.Reset()
+	m.Code = 0
+	m.Print(&buf, false)
+	exp = strings.Join(rspExpected, "\n") + "\n"
+
+	if buf.String() != exp {
+		t.Errorf("Message.Print test failed for response:\n"+
+			"expected: %s\n"+
+			"present:  %s\n",
+			exp, &buf,
+		)
 	}
 }
