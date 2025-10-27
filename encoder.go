@@ -51,11 +51,11 @@ func (me *messageEncoder) encode(m *Message) error {
 				} else {
 					err = me.encodeAttr(attr, true)
 				}
-			}
-		}
 
-		if err != nil {
-			break
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -155,9 +155,22 @@ func (me *messageEncoder) encodeName(name string) error {
 func (me *messageEncoder) encodeValue(tag Tag, v Value) error {
 	// Check Value type vs the Tag
 	tagType := tag.Type()
-	if tagType == TypeVoid {
-		v = Void{} // Ignore supplied value
-	} else if tagType != v.Type() {
+	valType := v.Type()
+
+	switch {
+	// If tag.Type() is void, ignore supplied data
+	case tagType == TypeVoid:
+		v = Void{}
+
+	// If types are the same, we are OK
+	case tagType == valType:
+
+	// Allow Binary vs String mismatch
+	case tagType == TypeBinary && valType == TypeString:
+	case tagType == TypeString && valType == TypeBinary:
+
+	// Otherwise, we have a type error. Report it
+	default:
 		return fmt.Errorf("Tag %s: %s value required, %s present",
 			tag, tagType, v.Type())
 	}

@@ -75,7 +75,7 @@ func assertWithError(t *testing.T, err error) {
 func assertErrorIs(t *testing.T, err error, s string) {
 	if err == nil {
 		if s != "" {
-			t.Errorf("Error expected")
+			t.Errorf("Error expected: %s", s)
 		}
 		return
 	}
@@ -143,8 +143,11 @@ func testEncodeDecodeMessage() *Message {
 
 	m.Operation.Add(MakeAttribute("type_void", TagUnsupportedValue, Void{}))
 
-	m.Operation.Add(MakeAttribute("type_string_1", TagText, String("hello")))
-	m.Operation.Add(MakeAttribute("type_string_2", TagText, String("")))
+	m.Operation.Add(MakeAttribute("type_text_1", TagText, String("hello")))
+	m.Operation.Add(MakeAttribute("type_text_2", TagText, String("")))
+
+	m.Operation.Add(MakeAttribute("type_string_1", TagString, String("hello")))
+	m.Operation.Add(MakeAttribute("type_string_2", TagString, String("")))
 
 	m.Operation.Add(MakeAttribute("type_time_1", TagDateTime,
 		parseTime("01/02 03:04:05PM '06 -0700")))
@@ -782,10 +785,10 @@ func TestTagExtension(t *testing.T) {
 	// Extension tag requires Binary payload
 	m1 = NewResponse(DefaultVersion, StatusOk, 0x12345678)
 	m1.Operation.Add(MakeAttribute("attr", TagExtension,
-		String("hello")))
+		Integer(12345)))
 
 	_, err = m1.EncodeBytes()
-	assertErrorIs(t, err, "Tag extension: Binary value required, String present")
+	assertErrorIs(t, err, "Tag extension: Binary value required, Integer present")
 
 	// Extension tag requires at least 4 bytes of payload
 	m1 = NewResponse(DefaultVersion, StatusOk, 0x12345678)
