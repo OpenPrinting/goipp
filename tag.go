@@ -167,6 +167,22 @@ func (tag Tag) String() string {
 	return fmt.Sprintf("0x%8.8x", uint(tag))
 }
 
+// GoString returns string that represents Tag in Go syntax, i.e.,
+// "goipp.TagBoolean" or "goipp.TagBoolean(0x12) for unknown tags.
+func (tag Tag) GoString() string {
+	if 0 <= tag && int(tag) < len(tagGoNames) {
+		if s := tagGoNames[tag]; s != "" {
+			return s
+		}
+	}
+
+	if tag < 0x100 {
+		return fmt.Sprintf("goipp.Tag(0x%2.2x)", uint32(tag))
+	}
+
+	return fmt.Sprintf("goipp.Tag(0x%8.8x)", uint(tag))
+}
+
 var tagNames = [...]string{
 	// Delimiter tags
 	TagZero:                   "zero",
@@ -210,4 +226,49 @@ var tagNames = [...]string{
 	TagMimeType:         "mimeMediaType",
 	TagMemberName:       "memberAttrName",
 	TagExtension:        "extension",
+}
+
+var tagGoNames = [...]string{
+	// Delimiter tags
+	TagZero:                   "goipp.TagZero",
+	TagOperationGroup:         "goipp.TagOperationGroup",
+	TagJobGroup:               "goipp.TagJobGroup",
+	TagEnd:                    "goipp.TagEnd",
+	TagPrinterGroup:           "goipp.TagPrinterGroup",
+	TagUnsupportedGroup:       "goipp.TagUnsupportedGroup",
+	TagSubscriptionGroup:      "goipp.TagSubscriptionGroup",
+	TagEventNotificationGroup: "goipp.TagEventNotificationGroup",
+	TagResourceGroup:          "goipp.TagResourceGroup",
+	TagDocumentGroup:          "goipp.TagDocumentGroup",
+	TagSystemGroup:            "goipp.TagSystemGroup",
+
+	// Value tags
+	TagUnsupportedValue: "goipp.TagUnsupportedValue",
+	TagDefault:          "goipp.TagDefault",
+	TagUnknown:          "goipp.TagUnknown",
+	TagNoValue:          "goipp.TagNoValue",
+	TagNotSettable:      "goipp.TagNotSettable",
+	TagDeleteAttr:       "goipp.TagDeleteAttr",
+	TagAdminDefine:      "goipp.TagAdminDefine",
+	TagInteger:          "goipp.TagInteger",
+	TagBoolean:          "goipp.TagBoolean",
+	TagEnum:             "goipp.TagEnum",
+	TagString:           "goipp.TagString",
+	TagDateTime:         "goipp.TagDateTime",
+	TagResolution:       "goipp.TagResolution",
+	TagRange:            "goipp.TagRange",
+	TagBeginCollection:  "goipp.TagBeginCollection",
+	TagTextLang:         "goipp.TagTextLang",
+	TagNameLang:         "goipp.TagNameLang",
+	TagEndCollection:    "goipp.TagEndCollection",
+	TagText:             "goipp.TagText",
+	TagName:             "goipp.TagName",
+	TagKeyword:          "goipp.TagKeyword",
+	TagURI:              "goipp.TagURI",
+	TagURIScheme:        "goipp.TagURIScheme",
+	TagCharset:          "goipp.TagCharset",
+	TagLanguage:         "goipp.TagLanguage",
+	TagMimeType:         "goipp.TagMimeType",
+	TagMemberName:       "goipp.TagMemberName",
+	TagExtension:        "goipp.TagExtension",
 }

@@ -8,7 +8,10 @@
 
 package goipp
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 // TestTagIsDelimiter tests Tag.IsDelimiter function
 func TestTagIsDelimiter(t *testing.T) {
@@ -155,7 +158,35 @@ func TestTagString(t *testing.T) {
 	for _, test := range tests {
 		answer := test.t.String()
 		if answer != test.answer {
-			t.Errorf("testing Tag.IsGroup:\n"+
+			t.Errorf("testing Tag.String:\n"+
+				"tag:      %s (0x%.2x)\n"+
+				"expected: %v\n"+
+				"present:  %v\n",
+				test.t, uint32(test.t), test.answer, answer,
+			)
+		}
+	}
+}
+
+// TestTagGoString tests Tag.GoString function
+func TestTagGoString(t *testing.T) {
+	type testData struct {
+		t      Tag
+		answer string
+	}
+
+	tests := []testData{
+		{TagZero, "goipp.TagZero"},
+		{TagUnsupportedValue, "goipp.TagUnsupportedValue"},
+		{-1, "goipp.Tag(0xffffffff)"},
+		{0xff, "goipp.Tag(0xff)"},
+		{0x1234, "goipp.Tag(0x00001234)"},
+	}
+
+	for _, test := range tests {
+		answer := fmt.Sprintf("%#v", test.t)
+		if answer != test.answer {
+			t.Errorf("testing Tag.GoString:\n"+
 				"tag:      %s (0x%.2x)\n"+
 				"expected: %v\n"+
 				"present:  %v\n",
