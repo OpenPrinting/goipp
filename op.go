@@ -152,7 +152,7 @@ func (op Op) String() string {
 }
 
 // GoString returns string that represents Op in Go syntax, i.e.,
-// "goipp.OpGetPrinterAttributes" or "goipp.Op(0x12) for unknown Ops.
+// "goipp.OpGetPrinterAttributes" or "goipp.Op(0xbebe) for unknown Ops.
 func (op Op) GoString() string {
 	if s := opGoNames[op]; s != "" {
 		return s
