@@ -142,13 +142,23 @@ const (
 
 )
 
-// String() returns a Status name, as defined by RFC 8010
+// String returns a Status name, as defined by RFC 8010
 func (op Op) String() string {
 	if s := opNames[op]; s != "" {
 		return s
 	}
 
 	return fmt.Sprintf("0x%4.4x", int(op))
+}
+
+// GoString returns string that represents Op in Go syntax, i.e.,
+// "goipp.OpGetPrinterAttributes" or "goipp.Op(0x12) for unknown Ops.
+func (op Op) GoString() string {
+	if s := opGoNames[op]; s != "" {
+		return s
+	}
+
+	return fmt.Sprintf("goipp.Op(0x%4.4x)", int(op))
 }
 
 var opNames = map[Op]string{
@@ -266,4 +276,121 @@ var opNames = map[Op]string{
 	OpCupsGetPpd:                      "CUPS-Get-PPD",
 	OpCupsGetDocument:                 "CUPS-Get-Document",
 	OpCupsCreateLocalPrinter:          "CUPS-Create-Local-Printer",
+}
+
+var opGoNames = map[Op]string{
+	OpPrintJob:                        "goipp.OpPrintJob",
+	OpPrintURI:                        "goipp.OpPrintURI",
+	OpValidateJob:                     "goipp.OpValidateJob",
+	OpCreateJob:                       "goipp.OpCreateJob",
+	OpSendDocument:                    "goipp.OpSendDocument",
+	OpSendURI:                         "goipp.OpSendURI",
+	OpCancelJob:                       "goipp.OpCancelJob",
+	OpGetJobAttributes:                "goipp.OpGetJobAttributes",
+	OpGetJobs:                         "goipp.OpGetJobs",
+	OpGetPrinterAttributes:            "goipp.OpGetPrinterAttributes",
+	OpHoldJob:                         "goipp.OpHoldJob",
+	OpReleaseJob:                      "goipp.OpReleaseJob",
+	OpRestartJob:                      "goipp.OpRestartJob",
+	OpPausePrinter:                    "goipp.OpPausePrinter",
+	OpResumePrinter:                   "goipp.OpResumePrinter",
+	OpPurgeJobs:                       "goipp.OpPurgeJobs",
+	OpSetPrinterAttributes:            "goipp.OpSetPrinterAttributes",
+	OpSetJobAttributes:                "goipp.OpSetJobAttributes",
+	OpGetPrinterSupportedValues:       "goipp.OpGetPrinterSupportedValues",
+	OpCreatePrinterSubscriptions:      "goipp.OpCreatePrinterSubscriptions",
+	OpCreateJobSubscriptions:          "goipp.OpCreateJobSubscriptions",
+	OpGetSubscriptionAttributes:       "goipp.OpGetSubscriptionAttributes",
+	OpGetSubscriptions:                "goipp.OpGetSubscriptions",
+	OpRenewSubscription:               "goipp.OpRenewSubscription",
+	OpCancelSubscription:              "goipp.OpCancelSubscription",
+	OpGetNotifications:                "goipp.OpGetNotifications",
+	OpSendNotifications:               "goipp.OpSendNotifications",
+	OpGetResourceAttributes:           "goipp.OpGetResourceAttributes",
+	OpGetResourceData:                 "goipp.OpGetResourceData",
+	OpGetResources:                    "goipp.OpGetResources",
+	OpGetPrintSupportFiles:            "goipp.OpGetPrintSupportFiles",
+	OpEnablePrinter:                   "goipp.OpEnablePrinter",
+	OpDisablePrinter:                  "goipp.OpDisablePrinter",
+	OpPausePrinterAfterCurrentJob:     "goipp.OpPausePrinterAfterCurrentJob",
+	OpHoldNewJobs:                     "goipp.OpHoldNewJobs",
+	OpReleaseHeldNewJobs:              "goipp.OpReleaseHeldNewJobs",
+	OpDeactivatePrinter:               "goipp.OpDeactivatePrinter",
+	OpActivatePrinter:                 "goipp.OpActivatePrinter",
+	OpRestartPrinter:                  "goipp.OpRestartPrinter",
+	OpShutdownPrinter:                 "goipp.OpShutdownPrinter",
+	OpStartupPrinter:                  "goipp.OpStartupPrinter",
+	OpReprocessJob:                    "goipp.OpReprocessJob",
+	OpCancelCurrentJob:                "goipp.OpCancelCurrentJob",
+	OpSuspendCurrentJob:               "goipp.OpSuspendCurrentJob",
+	OpResumeJob:                       "goipp.OpResumeJob",
+	OpPromoteJob:                      "goipp.OpPromoteJob",
+	OpScheduleJobAfter:                "goipp.OpScheduleJobAfter",
+	OpCancelDocument:                  "goipp.OpCancelDocument",
+	OpGetDocumentAttributes:           "goipp.OpGetDocumentAttributes",
+	OpGetDocuments:                    "goipp.OpGetDocuments",
+	OpDeleteDocument:                  "goipp.OpDeleteDocument",
+	OpSetDocumentAttributes:           "goipp.OpSetDocumentAttributes",
+	OpCancelJobs:                      "goipp.OpCancelJobs",
+	OpCancelMyJobs:                    "goipp.OpCancelMyJobs",
+	OpResubmitJob:                     "goipp.OpResubmitJob",
+	OpCloseJob:                        "goipp.OpCloseJob",
+	OpIdentifyPrinter:                 "goipp.OpIdentifyPrinter",
+	OpValidateDocument:                "goipp.OpValidateDocument",
+	OpAddDocumentImages:               "goipp.OpAddDocumentImages",
+	OpAcknowledgeDocument:             "goipp.OpAcknowledgeDocument",
+	OpAcknowledgeIdentifyPrinter:      "goipp.OpAcknowledgeIdentifyPrinter",
+	OpAcknowledgeJob:                  "goipp.OpAcknowledgeJob",
+	OpFetchDocument:                   "goipp.OpFetchDocument",
+	OpFetchJob:                        "goipp.OpFetchJob",
+	OpGetOutputDeviceAttributes:       "goipp.OpGetOutputDeviceAttributes",
+	OpUpdateActiveJobs:                "goipp.OpUpdateActiveJobs",
+	OpDeregisterOutputDevice:          "goipp.OpDeregisterOutputDevice",
+	OpUpdateDocumentStatus:            "goipp.OpUpdateDocumentStatus",
+	OpUpdateJobStatus:                 "goipp.OpupdateOutputDeviceAttributes",
+	OpupdateOutputDeviceAttributes:    "goipp.OpupdateOutputDeviceAttributes",
+	OpGetNextDocumentData:             "goipp.OpGetNextDocumentData",
+	OpAllocatePrinterResources:        "goipp.OpAllocatePrinterResources",
+	OpCreatePrinter:                   "goipp.OpCreatePrinter",
+	OpDeallocatePrinterResources:      "goipp.OpDeallocatePrinterResources",
+	OpDeletePrinter:                   "goipp.OpDeletePrinter",
+	OpGetPrinters:                     "goipp.OpGetPrinters",
+	OpShutdownOnePrinter:              "goipp.OpShutdownOnePrinter",
+	OpStartupOnePrinter:               "goipp.OpStartupOnePrinter",
+	OpCancelResource:                  "goipp.OpCancelResource",
+	OpCreateResource:                  "goipp.OpCreateResource",
+	OpInstallResource:                 "goipp.OpInstallResource",
+	OpSendResourceData:                "goipp.OpSendResourceData",
+	OpSetResourceAttributes:           "goipp.OpSetResourceAttributes",
+	OpCreateResourceSubscriptions:     "goipp.OpCreateResourceSubscriptions",
+	OpCreateSystemSubscriptions:       "goipp.OpCreateSystemSubscriptions",
+	OpDisableAllPrinters:              "goipp.OpDisableAllPrinters",
+	OpEnableAllPrinters:               "goipp.OpEnableAllPrinters",
+	OpGetSystemAttributes:             "goipp.OpGetSystemAttributes",
+	OpGetSystemSupportedValues:        "goipp.OpGetSystemSupportedValues",
+	OpPauseAllPrinters:                "goipp.OpPauseAllPrinters",
+	OpPauseAllPrintersAfterCurrentJob: "goipp.OpPauseAllPrintersAfterCurrentJob",
+	OpRegisterOutputDevice:            "goipp.OpRegisterOutputDevice",
+	OpRestartSystem:                   "goipp.OpRestartSystem",
+	OpResumeAllPrinters:               "goipp.OpResumeAllPrinters",
+	OpSetSystemAttributes:             "goipp.OpSetSystemAttributes",
+	OpShutdownAllPrinters:             "goipp.OpShutdownAllPrinters",
+	OpStartupAllPrinters:              "goipp.OpStartupAllPrinters",
+	OpCupsGetDefault:                  "goipp.OpCupsGetDefault",
+	OpCupsGetPrinters:                 "goipp.OpCupsGetPrinters",
+	OpCupsAddModifyPrinter:            "goipp.OpCupsAddModifyPrinter",
+	OpCupsDeletePrinter:               "goipp.OpCupsDeletePrinter",
+	OpCupsGetClasses:                  "goipp.OpCupsGetClasses",
+	OpCupsAddModifyClass:              "goipp.OpCupsAddModifyClass",
+	OpCupsDeleteClass:                 "goipp.OpCupsDeleteClass",
+	OpCupsAcceptJobs:                  "goipp.OpCupsAcceptJobs",
+	OpCupsRejectJobs:                  "goipp.OpCupsRejectJobs",
+	OpCupsSetDefault:                  "goipp.OpCupsSetDefault",
+	OpCupsGetDevices:                  "goipp.OpCupsGetDevices",
+	OpCupsGetPpds:                     "goipp.OpCupsGetPpds",
+	OpCupsMoveJob:                     "goipp.OpCupsMoveJob",
+	OpCupsAuthenticateJob:             "goipp.OpCupsAuthenticateJob",
+	OpCupsGetPpd:                      "goipp.OpCupsGetPpd",
+	OpCupsGetDocument:                 "goipp.OpCupsGetDocument",
+	OpCupsCreateLocalPrinter:          "goipp.OpCupsCreateLocalPrinter",
 }
