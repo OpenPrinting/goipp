@@ -84,6 +84,16 @@ func (status Status) String() string {
 	return fmt.Sprintf("0x%4.4x", int(status))
 }
 
+// GoString returns string that represents Status in Go syntax, i.e.,
+// "goipp.StatusOk" or "goipp.Status(0xbebe) for unknown Status codes.
+func (status Status) GoString() string {
+	if s := statusGoNames[status]; s != "" {
+		return s
+	}
+
+	return fmt.Sprintf("goipp.Status(0x%4.4x)", int(status))
+}
+
 var statusNames = map[Status]string{
 	StatusOk:                              "successful-ok",
 	StatusOkIgnoredOrSubstituted:          "successful-ok-ignored-or-substituted-attributes",
@@ -141,4 +151,63 @@ var statusNames = map[Status]string{
 	StatusErrorPrinterIsDeactivated:       "server-error-printer-is-deactivated",
 	StatusErrorTooManyJobs:                "server-error-too-many-jobs",
 	StatusErrorTooManyDocuments:           "server-error-too-many-documents",
+}
+
+var statusGoNames = map[Status]string{
+	StatusOk:                              "goipp.StatusOk",
+	StatusOkIgnoredOrSubstituted:          "goipp.StatusOkIgnoredOrSubstituted",
+	StatusOkConflicting:                   "goipp.StatusOkConflicting",
+	StatusOkIgnoredSubscriptions:          "goipp.StatusOkIgnoredSubscriptions",
+	StatusOkIgnoredNotifications:          "goipp.StatusOkIgnoredNotifications",
+	StatusOkTooManyEvents:                 "goipp.StatusOkTooManyEvents",
+	StatusOkButCancelSubscription:         "goipp.StatusOkButCancelSubscription",
+	StatusOkEventsComplete:                "goipp.StatusOkEventsComplete",
+	StatusRedirectionOtherSite:            "goipp.StatusRedirectionOtherSite",
+	StatusCupsSeeOther:                    "goipp.StatusCupsSeeOther",
+	StatusErrorBadRequest:                 "goipp.StatusErrorBadRequest",
+	StatusErrorForbidden:                  "goipp.StatusErrorForbidden",
+	StatusErrorNotAuthenticated:           "goipp.StatusErrorNotAuthenticated",
+	StatusErrorNotAuthorized:              "goipp.StatusErrorNotAuthorized",
+	StatusErrorNotPossible:                "goipp.StatusErrorNotPossible",
+	StatusErrorTimeout:                    "goipp.StatusErrorTimeout",
+	StatusErrorNotFound:                   "goipp.StatusErrorNotFound",
+	StatusErrorGone:                       "goipp.StatusErrorGone",
+	StatusErrorRequestEntity:              "goipp.StatusErrorRequestEntity",
+	StatusErrorRequestValue:               "goipp.StatusErrorRequestValue",
+	StatusErrorDocumentFormatNotSupported: "goipp.StatusErrorDocumentFormatNotSupported",
+	StatusErrorAttributesOrValues:         "goipp.StatusErrorAttributesOrValues",
+	StatusErrorURIScheme:                  "goipp.StatusErrorURIScheme",
+	StatusErrorCharset:                    "goipp.StatusErrorCharset",
+	StatusErrorConflicting:                "goipp.StatusErrorConflicting",
+	StatusErrorCompressionNotSupported:    "goipp.StatusErrorCompressionNotSupported",
+	StatusErrorCompressionError:           "goipp.StatusErrorCompressionError",
+	StatusErrorDocumentFormatError:        "goipp.StatusErrorDocumentFormatError",
+	StatusErrorDocumentAccess:             "goipp.StatusErrorDocumentAccess",
+	StatusErrorAttributesNotSettable:      "goipp.StatusErrorAttributesNotSettable",
+	StatusErrorIgnoredAllSubscriptions:    "goipp.StatusErrorIgnoredAllSubscriptions",
+	StatusErrorTooManySubscriptions:       "goipp.StatusErrorTooManySubscriptions",
+	StatusErrorIgnoredAllNotifications:    "goipp.StatusErrorIgnoredAllNotifications",
+	StatusErrorPrintSupportFileNotFound:   "goipp.StatusErrorPrintSupportFileNotFound",
+	StatusErrorDocumentPassword:           "goipp.StatusErrorDocumentPassword",
+	StatusErrorDocumentPermission:         "goipp.StatusErrorDocumentPermission",
+	StatusErrorDocumentSecurity:           "goipp.StatusErrorDocumentSecurity",
+	StatusErrorDocumentUnprintable:        "goipp.StatusErrorDocumentUnprintable",
+	StatusErrorAccountInfoNeeded:          "goipp.StatusErrorAccountInfoNeeded",
+	StatusErrorAccountClosed:              "goipp.StatusErrorAccountClosed",
+	StatusErrorAccountLimitReached:        "goipp.StatusErrorAccountLimitReached",
+	StatusErrorAccountAuthorizationFailed: "goipp.StatusErrorAccountAuthorizationFailed",
+	StatusErrorNotFetchable:               "goipp.StatusErrorNotFetchable",
+	StatusErrorInternal:                   "goipp.StatusErrorInternal",
+	StatusErrorOperationNotSupported:      "goipp.StatusErrorOperationNotSupported",
+	StatusErrorServiceUnavailable:         "goipp.StatusErrorServiceUnavailable",
+	StatusErrorVersionNotSupported:        "goipp.StatusErrorVersionNotSupported",
+	StatusErrorDevice:                     "goipp.StatusErrorDevice",
+	StatusErrorTemporary:                  "goipp.StatusErrorTemporary",
+	StatusErrorNotAcceptingJobs:           "goipp.StatusErrorNotAcceptingJobs",
+	StatusErrorBusy:                       "goipp.StatusErrorBusy",
+	StatusErrorJobCanceled:                "goipp.StatusErrorJobCanceled",
+	StatusErrorMultipleJobsNotSupported:   "goipp.StatusErrorMultipleJobsNotSupported",
+	StatusErrorPrinterIsDeactivated:       "goipp.StatusErrorPrinterIsDeactivated",
+	StatusErrorTooManyJobs:                "goipp.StatusErrorTooManyJobs",
+	StatusErrorTooManyDocuments:           "goipp.StatusErrorTooManyDocuments",
 }
