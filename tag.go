@@ -168,7 +168,7 @@ func (tag Tag) String() string {
 }
 
 // GoString returns string that represents Tag in Go syntax, i.e.,
-// "goipp.TagBoolean" or "goipp.TagBoolean(0x12) for unknown tags.
+// "goipp.TagBoolean" or "goipp.Tag(0x12) for unknown tags.
 func (tag Tag) GoString() string {
 	if 0 <= tag && int(tag) < len(tagGoNames) {
 		if s := tagGoNames[tag]; s != "" {
