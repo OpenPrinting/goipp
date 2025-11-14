@@ -65,7 +65,7 @@ func TestOpGoString(t *testing.T) {
 	for _, test := range tests {
 		s := fmt.Sprintf("%#v", test.op)
 		if s != test.s {
-			t.Errorf("testing Op.String:\n"+
+			t.Errorf("testing Op.GoString:\n"+
 				"input:    0x%4.4x\n"+
 				"expected: %s\n"+
 				"present:  %s\n",
