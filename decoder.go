@@ -31,11 +31,21 @@ type DecoderOptions struct {
 }
 
 // messageDecoder represents Message decoder
+// maxCollectionDepth limits how deeply IPP collections may nest.
+// decodeCollection recurses once per nesting level with no other
+// bound on the input, so without a limit a small, attacker-crafted
+// message can drive the decoder to exhaust the goroutine stack,
+// which is an unrecoverable Go fatal error (not a panic) that kills
+// the whole process. IPP collections in practice nest only a few
+// levels deep, so this leaves a comfortable margin.
+const maxCollectionDepth = 32
+
 type messageDecoder struct {
-	in  io.Reader      // Input stream
-	off int            // Offset of last read
-	cnt int            // Count of read bytes
-	opt DecoderOptions // Options
+	in        io.Reader      // Input stream
+	off       int            // Offset of last read
+	cnt       int            // Count of read bytes
+	opt       DecoderOptions // Options
+	collDepth int            // Current collection nesting depth
 }
 
 // Decode the message
@@ -193,6 +203,14 @@ func (md *messageDecoder) decode(m *Message) error {
 // 1.x parser silently ignores collections and doesn't get confused
 // with them.
 func (md *messageDecoder) decodeCollection() (Collection, error) {
+	md.collDepth++
+	defer func() { md.collDepth-- }()
+
+	if md.collDepth > maxCollectionDepth {
+		return nil, fmt.Errorf(
+			"Collection: nesting too deep (max %d levels)", maxCollectionDepth)
+	}
+
 	collection := make(Collection, 0)
 
 	memberName := ""
